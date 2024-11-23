@@ -101,22 +101,42 @@ ORDER BY avg_rating DESC;
 **Question:** Find the distribution of business categories in cities with more than 1000 businesses
 **Business Value:** Market composition understanding
 ```sql
+-- Step 1: Define a Common Table Expression (CTE) to find cities with more than 1000 businesses.
 WITH city_businesses AS (
-    SELECT city, COUNT(*) as total
+    SELECT 
+        city,                      -- Select the city name.
+        COUNT(*) as total          -- Count the total number of businesses in each city.
     FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
-    GROUP BY city
-    HAVING total > 1000
+    GROUP BY city                  -- Group by city to get the count per city.
+    HAVING total > 1000            -- Filter to include only cities with more than 1000 businesses.
 )
+
+-- Step 2: Use the main query to calculate the percentage distribution of categories in each city.
 SELECT 
-    b.city,
-    category,
-    COUNT(*) as category_count,
-    ROUND(COUNT(*) * 100.0 / cb.total, 2) as percentage
-FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp` b
-CROSS JOIN UNNEST(SPLIT(categories, ', ')) as category
-JOIN city_businesses cb ON b.city = cb.city
-GROUP BY b.city, category, cb.total
-ORDER BY b.city, category_count DESC;
+    b.city,                        -- The city name.
+    category,                      -- Each individual category derived from the categories column.
+    COUNT(*) as category_count,    -- Count of businesses in the city belonging to the specific category.
+    ROUND(COUNT(*) * 100.0 / cb.total, 2) as percentage 
+                                   -- Calculate the percentage of businesses in the city for the category.
+                                   -- COUNT(*) * 100.0 / cb.total ensures a percentage format.
+FROM 
+    `long-loop-442611-j5.Yelp_Business_Part1.business_yelp` b
+                                   -- Use the main business table with alias `b`.
+CROSS JOIN 
+    UNNEST(SPLIT(categories, ', ')) as category
+                                   -- Split the `categories` column (comma-separated string) into an array.
+                                   -- `UNNEST` converts the array into rows, one row per category per business.
+JOIN 
+    city_businesses cb 
+    ON b.city = cb.city            -- Join the `city_businesses` CTE to include only cities with >1000 businesses.
+GROUP BY 
+    b.city,                        -- Group by city.
+    category,                      -- Group by each category.
+    cb.total                       -- Include the total business count for accurate percentage calculation.
+ORDER BY 
+    b.city,                        -- Sort results by city.
+    category_count DESC;           -- Sort categories within each city by descending count.
+
 
 ```
 
