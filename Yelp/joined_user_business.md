@@ -53,31 +53,42 @@ Analyzes which business categories are most frequently reviewed by elite users.
 
 ### Query
 ```sql
+-- Step 1: Create a Common Table Expression (CTE) to process elite users and calculate the number of elite years
 WITH elite_users AS (
     SELECT 
-        user_id,
-        name,
+        user_id,  -- Select the user_id of each user
+        name,     -- Select the name of each user
+        
+        -- Calculate the number of years a user has been elite (count of 4-digit elite years)
         ARRAY_LENGTH(
             ARRAY(
-                SELECT SUBSTR(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', ''), pos, 4)
+                -- Convert the elite years (concatenated string) into an array of 4-digit years
+                -- REGEXP_REPLACE removes any decimal (e.g., '.0')
+                SELECT SUBSTR(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', ''), pos, 4)  -- Extract the 4-digit years
                 FROM UNNEST(GENERATE_ARRAY(1, LENGTH(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', '')) - 3, 4)) AS pos
+                -- UNNEST(GENERATE_ARRAY(...)) generates positions from which to extract each 4-digit substring
             )
-        ) AS elite_years_count
+        ) AS elite_years_count  -- Calculate the total number of elite years (length of the array)
     FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
+    -- Filter users who have at least one elite year (elite is not null and greater than 0)
     WHERE elite IS NOT NULL AND elite > 0
 )
+
+-- Step 2: Main query to calculate the average rating and review count per category
 SELECT 
-    category,
-    COUNT(*) as review_count,
-    ROUND(AVG(b.stars), 2) as avg_rating
-FROM elite_users e
+    category,  -- Select each category (from the business categories)
+    COUNT(*) AS review_count,  -- Count the number of reviews for each category
+    ROUND(AVG(b.stars), 2) AS avg_rating  -- Calculate the average rating for businesses in this category, rounded to 2 decimal places
+FROM elite_users e  -- Use the elite_users CTE to bring in users' elite years count
 JOIN `long-loop-442611-j5.Yelp_Business_Part1.business_yelp` b 
-    ON b.stars = e.elite_years_count
-CROSS JOIN UNNEST(SPLIT(b.categories, ', ')) as category
-GROUP BY category
-HAVING review_count > 10
-ORDER BY review_count DESC
-LIMIT 15;
+    -- Join the 'business_yelp' table on the condition that the number of elite years matches the business stars rating
+    ON b.stars = e.elite_years_count  -- This implies that the business rating corresponds to the number of elite years of the user
+CROSS JOIN UNNEST(SPLIT(b.categories, ', ')) AS category  -- Split the categories string into separate categories and cross join them
+GROUP BY category  -- Group the results by category
+HAVING review_count > 10  -- Filter categories that have more than 10 reviews
+ORDER BY review_count DESC  -- Order the results by the number of reviews in descending order
+LIMIT 15;  -- Limit the result to the top 15 categories
+
 ```
 
 ## Social Network Impact Analysis
