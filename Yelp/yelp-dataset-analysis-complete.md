@@ -62,7 +62,7 @@ SELECT
     city,
     state,
     COUNT(*) as restaurant_count
-FROM `yelp_dataset.business`
+FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
 GROUP BY city, state
 ORDER BY restaurant_count DESC
 LIMIT 10;
@@ -77,7 +77,7 @@ SELECT
     stars,
     review_count,
     address
-FROM `yelp_dataset.business`
+FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
 WHERE city = 'San Francisco' 
     AND 'Mexican' IN UNNEST(categories)
     AND stars >= 4.0
@@ -93,7 +93,7 @@ SELECT
     state,
     ROUND(AVG(stars), 2) as avg_rating,
     COUNT(*) as total_businesses
-FROM `yelp_dataset.business`
+FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
 GROUP BY state
 HAVING total_businesses > 10
 ORDER BY avg_rating DESC;
@@ -107,7 +107,7 @@ ORDER BY avg_rating DESC;
 ```sql
 WITH city_businesses AS (
     SELECT city, COUNT(*) as total
-    FROM `yelp_dataset.business`
+    FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
     GROUP BY city
     HAVING total > 1000
 )
@@ -116,7 +116,7 @@ SELECT
     category,
     COUNT(*) as category_count,
     ROUND(COUNT(*) * 100.0 / cb.total, 2) as percentage
-FROM `yelp_dataset.business` b
+FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp` b
 CROSS JOIN UNNEST(categories) as category
 JOIN city_businesses cb ON b.city = cb.city
 GROUP BY b.city, category, cb.total
@@ -138,7 +138,7 @@ WITH business_hours AS (
             PARSE_TIME('%H:%M', SPLIT(hours.Monday, '-')[OFFSET(0)]),
             HOUR
         ) as hours_open
-    FROM `yelp_dataset.business`
+    FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
     WHERE hours.Monday IS NOT NULL
 )
 SELECT 
@@ -172,7 +172,7 @@ WITH weekday_hours AS (
             PARSE_TIME('%H:%M', SPLIT(hours.Saturday, '-')[OFFSET(0)]),
             MINUTE
         ) as saturday_minutes
-    FROM `yelp_dataset.business`
+    FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
     WHERE hours.Monday IS NOT NULL AND hours.Saturday IS NOT NULL
 )
 SELECT 
@@ -198,8 +198,8 @@ WITH nearby_businesses AS (
         b1.longitude,
         COUNT(*) as nearby_count,
         AVG(b2.stars) as cluster_rating
-    FROM `yelp_dataset.business` b1
-    JOIN `yelp_dataset.business` b2
+    FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp` b1
+    JOIN `long-loop-442611-j5.Yelp_Business_Part1.business_yelp` b2
     ON ST_DISTANCE(
         ST_GEOGPOINT(b1.longitude, b1.latitude),
         ST_GEOGPOINT(b2.longitude, b2.latitude)
@@ -224,7 +224,7 @@ WITH parking_options AS (
         JSON_EXTRACT_SCALAR(attributes.BusinessParking, '$.street') = 'true' as has_street,
         JSON_EXTRACT_SCALAR(attributes.BusinessParking, '$.lot') = 'true' as has_lot,
         JSON_EXTRACT_SCALAR(attributes.BusinessParking, '$.valet') = 'true' as has_valet
-    FROM `yelp_dataset.business`
+    FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
     WHERE attributes.BusinessParking IS NOT NULL
 )
 SELECT 
@@ -239,7 +239,7 @@ SELECT
     ROUND(AVG(b.stars), 2) as avg_rating,
     ROUND(AVG(b.review_count), 0) as avg_reviews
 FROM parking_options p
-JOIN `yelp_dataset.business` b ON p.business_id = b.business_id
+JOIN `long-loop-442611-j5.Yelp_Business_Part1.business_yelp` b ON p.business_id = b.business_id
 GROUP BY parking_type
 ORDER BY avg_rating DESC;
 ```
@@ -253,7 +253,7 @@ WITH category_stats AS (
         category,
         AVG(stars) as category_avg,
         STDDEV(stars) as category_stddev
-    FROM `yelp_dataset.business`
+    FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
     CROSS JOIN UNNEST(categories) as category
     GROUP BY category
     HAVING COUNT(*) >= 30
@@ -265,7 +265,7 @@ SELECT
     c.category,
     ROUND(c.category_avg, 2) as category_avg,
     ROUND((b.stars - c.category_avg)/c.category_stddev, 2) as standard_deviations_from_mean
-FROM `yelp_dataset.business` b
+FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp` b
 CROSS JOIN UNNEST(categories) as business_category
 JOIN category_stats c ON business_category = c.category
 WHERE ABS(b.stars - c.category_avg) >= 2*c.category_stddev
@@ -288,7 +288,7 @@ WITH business_operating_hours AS (
         state,
         stars,
         review_count
-    FROM `yelp_dataset.business`
+    FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
     WHERE hours.Monday IS NOT NULL
 ),
 city_stats AS (
@@ -297,7 +297,7 @@ city_stats AS (
         state,
         AVG(stars) as city_avg_rating,
         COUNT(*) as total_businesses
-    FROM `yelp_dataset.business`
+    FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
     GROUP BY city, state
     HAVING COUNT(*) >= 50
 )
