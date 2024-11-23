@@ -239,27 +239,47 @@ LIMIT 10;
 **Question:** Identify geographic clusters of highly-rated businesses
 **Business Value:** Location strategy optimization
 ```sql
+-- Create a temporary table (CTE) to calculate nearby businesses
 WITH nearby_businesses AS (
     SELECT 
-        b1.business_id,
-        b1.name,
-        b1.latitude,
-        b1.longitude,
-        COUNT(*) as nearby_count,
-        AVG(b2.stars) as cluster_rating
+        b1.business_id,        -- Unique identifier of the business being evaluated
+        b1.name,               -- Name of the business being evaluated
+        b1.latitude,           -- Latitude of the business
+        b1.longitude,          -- Longitude of the business
+        COUNT(*) as nearby_count,   -- Count of businesses within a 1km radius
+        AVG(b2.stars) as cluster_rating -- Average rating of the businesses in the cluster
     FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp` b1
+    -- Join the same table to compare each business with every other business
     JOIN `long-loop-442611-j5.Yelp_Business_Part1.business_yelp` b2
-    ON ST_DISTANCE(
-        ST_GEOGPOINT(b1.longitude, b1.latitude),
-        ST_GEOGPOINT(b2.longitude, b2.latitude)
-    ) <= 1000  -- 1km radius
-    GROUP BY b1.business_id, b1.name, b1.latitude, b1.longitude
-    HAVING nearby_count >= 10
+    ON 
+        -- Use ST_DISTANCE to calculate the distance between two geographic points
+        ST_DISTANCE(
+            ST_GEOGPOINT(b1.longitude, b1.latitude), -- Geographical point of the first business
+            ST_GEOGPOINT(b2.longitude, b2.latitude) -- Geographical point of the second business
+        ) <= 1000  -- Filter for businesses within a 1km radius
+    GROUP BY 
+        -- Group by the unique attributes of the base business
+        b1.business_id, 
+        b1.name, 
+        b1.latitude, 
+        b1.longitude
+    HAVING 
+        -- Filter to include only businesses with at least 10 nearby businesses
+        nearby_count >= 10
 )
+
+-- Final query to filter and order the results
 SELECT *
 FROM nearby_businesses
-WHERE cluster_rating >= 4.0
-ORDER BY cluster_rating DESC, nearby_count DESC;
+WHERE 
+    -- Include only clusters with an average rating of 4.0 or higher
+    cluster_rating >= 4.0
+ORDER BY 
+    -- Order by cluster rating in descending order first
+    cluster_rating DESC,
+    -- If ratings are tied, order by the number of nearby businesses in descending order
+    nearby_count DESC;
+
 ```
 
 #### 8. Parking Impact Analysis
