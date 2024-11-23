@@ -221,6 +221,150 @@ FROM compliment_totals
 ORDER BY total DESC;
 ```
 
+Based on the structure and type of analysis from the provided file, here’s a similar exercise for the **Yelp_User_Part1** dataset based on its schema:
+
+---
+
+## Example Analyses for `long-loop-442611-j5.Yelp_Business_Part1.user`
+
+### Basic Level Queries
+
+#### 1. User Review Count Distribution
+**Question:** What are the top 10 users based on the number of reviews written?  
+**Business Value:** Identifies the most active contributors to Yelp's platform.
+
+```sql
+SELECT 
+    user_id,
+    name,
+    review_count
+FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
+ORDER BY review_count DESC
+LIMIT 10;
+```
+
+---
+
+#### 2. Longest Active Users
+**Question:** Which users have been active on Yelp for the longest duration?  
+**Business Value:** Highlights loyal users for targeted campaigns.
+
+```sql
+SELECT 
+    user_id,
+    name,
+    yelping_since,
+    DATE_DIFF(CURRENT_DATE(), DATE(yelping_since), YEAR) AS years_active
+FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
+ORDER BY years_active DESC
+LIMIT 10;
+```
+
+---
+
+#### 3. Users with Most Friends
+**Question:** Who are the top 10 users with the highest number of friends?  
+**Business Value:** Identifies socially connected users for influencer marketing.
+
+```sql
+SELECT 
+    user_id,
+    name,
+    ARRAY_LENGTH(friends) AS friend_count
+FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
+ORDER BY friend_count DESC
+LIMIT 10;
+```
+
+---
+
+### Intermediate Level Queries
+
+#### 4. Elite User Analysis
+**Question:** What is the distribution of elite users by the number of years they have been elite?  
+**Business Value:** Provides insights into Yelp's elite user community.
+
+```sql
+SELECT 
+    ARRAY_LENGTH(elite) AS elite_years,
+    COUNT(*) AS user_count
+FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
+GROUP BY elite_years
+ORDER BY elite_years DESC;
+```
+
+---
+
+#### 5. User Voting Patterns
+**Question:** What are the average counts of 'useful,' 'funny,' and 'cool' votes across all users?  
+**Business Value:** Understands user engagement through voting patterns.
+
+```sql
+SELECT 
+    ROUND(AVG(useful), 2) AS avg_useful_votes,
+    ROUND(AVG(funny), 2) AS avg_funny_votes,
+    ROUND(AVG(cool), 2) AS avg_cool_votes
+FROM `long-loop-442611-j5.Yelp_Business_Part1.user`;
+```
+
+---
+
+### Advanced Level Queries
+
+#### 6. User Activity Versus Fan Base
+**Question:** Is there a correlation between the number of reviews written and the number of fans a user has?  
+**Business Value:** Explores trends between content contribution and fan following.
+
+```sql
+SELECT 
+    review_count,
+    fans,
+    CORR(review_count, fans) AS review_fan_correlation
+FROM `long-loop-442611-j5.Yelp_Business_Part1.user`;
+```
+
+---
+
+#### 7. Sentiment Leaders
+**Question:** Which users have the highest average 'hot,' 'cool,' and 'funny' compliments?  
+**Business Value:** Identifies users whose contributions are well-received.
+
+```sql
+SELECT 
+    user_id,
+    name,
+    compliment_hot,
+    compliment_cool,
+    compliment_funny,
+    ROUND((compliment_hot + compliment_cool + compliment_funny) / 3.0, 2) AS avg_compliments
+FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
+ORDER BY avg_compliments DESC
+LIMIT 10;
+```
+
+---
+
+#### 8. High Impact Elite Users
+**Question:** Identify elite users with a high number of reviews, fans, and compliments.  
+**Business Value:** Targets influential elite users for partnership opportunities.
+
+```sql
+SELECT 
+    user_id,
+    name,
+    review_count,
+    fans,
+    compliment_hot + compliment_cool + compliment_funny AS total_compliments
+FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
+WHERE ARRAY_LENGTH(elite) > 0
+ORDER BY review_count DESC, fans DESC, total_compliments DESC
+LIMIT 10;
+```
+
+---
+
+These queries can be further refined and customized to explore specific behaviors or patterns in user activity, social connections, and engagement metrics on Yelp. Let me know if you'd like a deeper dive into any particular analysis!
+
 ## Best Practices
 
 ### Query Optimization
