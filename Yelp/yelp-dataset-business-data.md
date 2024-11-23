@@ -282,37 +282,6 @@ ORDER BY
 
 ```
 
-#### 8. Parking Impact Analysis
-**Question:** Analyze the correlation between parking options and ratings
-**Business Value:** Facility planning insights
-```sql
-WITH parking_options AS (
-    SELECT 
-        business_id,
-        JSON_EXTRACT_SCALAR(attributes.BusinessParking, '$.garage') = 'true' as has_garage,
-        JSON_EXTRACT_SCALAR(attributes.BusinessParking, '$.street') = 'true' as has_street,
-        JSON_EXTRACT_SCALAR(attributes.BusinessParking, '$.lot') = 'true' as has_lot,
-        JSON_EXTRACT_SCALAR(attributes.BusinessParking, '$.valet') = 'true' as has_valet
-    FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
-    WHERE attributes.BusinessParking IS NOT NULL
-)
-SELECT 
-    CASE 
-        WHEN has_garage THEN 'Garage'
-        WHEN has_street THEN 'Street'
-        WHEN has_lot THEN 'Lot'
-        WHEN has_valet THEN 'Valet'
-        ELSE 'No Parking'
-    END as parking_type,
-    COUNT(*) as business_count,
-    ROUND(AVG(b.stars), 2) as avg_rating,
-    ROUND(AVG(b.review_count), 0) as avg_reviews
-FROM parking_options p
-JOIN `long-loop-442611-j5.Yelp_Business_Part1.business_yelp` b ON p.business_id = b.business_id
-GROUP BY parking_type
-ORDER BY avg_rating DESC;
-```
-
 #### 9. Category Performance Variation
 **Question:** Find businesses with significant rating variations compared to their category average
 **Business Value:** Performance benchmarking
