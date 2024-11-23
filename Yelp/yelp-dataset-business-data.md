@@ -176,32 +176,63 @@ LIMIT 10;
 **Question:** Find businesses that show a pattern of being busier on weekends based on different operating hours
 **Business Value:** Operational adaptation insights
 ```sql
-WITH weekday_hours AS (
+WITH business_hours AS (
     SELECT 
-        business_id,
         name,
-        TIME_DIFF(
-            PARSE_TIME('%H:%M', SPLIT(hours.Monday, '-')[OFFSET(1)]),
-            PARSE_TIME('%H:%M', SPLIT(hours.Monday, '-')[OFFSET(0)]),
-            MINUTE
-        ) as monday_minutes,
-        TIME_DIFF(
-            PARSE_TIME('%H:%M', SPLIT(hours.Saturday, '-')[OFFSET(1)]),
-            PARSE_TIME('%H:%M', SPLIT(hours.Saturday, '-')[OFFSET(0)]),
-            MINUTE
-        ) as saturday_minutes
+        city,
+        PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Monday'), '-')[OFFSET(0)]) AS monday_open,
+        PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Monday'), '-')[OFFSET(1)]) AS monday_close,
+        PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Tuesday'), '-')[OFFSET(0)]) AS tuesday_open,
+        PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Tuesday'), '-')[OFFSET(1)]) AS tuesday_close,
+        PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Wednesday'), '-')[OFFSET(0)]) AS wednesday_open,
+        PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Wednesday'), '-')[OFFSET(1)]) AS wednesday_close,
+        PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Thursday'), '-')[OFFSET(0)]) AS thursday_open,
+        PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Thursday'), '-')[OFFSET(1)]) AS thursday_close,
+        PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Friday'), '-')[OFFSET(0)]) AS friday_open,
+        PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Friday'), '-')[OFFSET(1)]) AS friday_close,
+        PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Saturday'), '-')[OFFSET(0)]) AS saturday_open,
+        PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Saturday'), '-')[OFFSET(1)]) AS saturday_close,
+        PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Sunday'), '-')[OFFSET(0)]) AS sunday_open,
+        PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Sunday'), '-')[OFFSET(1)]) AS sunday_close
     FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
-    WHERE hours.Monday IS NOT NULL AND hours.Saturday IS NOT NULL
+    WHERE hours IS NOT NULL
+),
+business_analysis AS (
+    SELECT 
+        name,
+        city,
+        -- Calculate total weekday hours (Monday to Friday)
+        COALESCE(TIME_DIFF(monday_close, monday_open, MINUTE), 0) +
+        COALESCE(TIME_DIFF(tuesday_close, tuesday_open, MINUTE), 0) +
+        COALESCE(TIME_DIFF(wednesday_close, wednesday_open, MINUTE), 0) +
+        COALESCE(TIME_DIFF(thursday_close, thursday_open, MINUTE), 0) +
+        COALESCE(TIME_DIFF(friday_close, friday_open, MINUTE), 0) AS weekday_minutes,
+        
+        -- Calculate total weekend hours (Saturday and Sunday)
+        COALESCE(TIME_DIFF(saturday_close, saturday_open, MINUTE), 0) +
+        COALESCE(TIME_DIFF(sunday_close, sunday_open, MINUTE), 0) AS weekend_minutes
+    FROM business_hours
+),
+weekend_focused_businesses AS (
+    SELECT 
+        name,
+        city,
+        weekday_minutes,
+        weekend_minutes,
+        ROUND(weekend_minutes * 1.0 / NULLIF(weekday_minutes, 0), 2) AS weekend_to_weekday_ratio
+    FROM business_analysis
+    WHERE weekend_minutes > weekday_minutes -- Focus on businesses with more weekend hours
 )
 SELECT 
     name,
-    monday_minutes/60 as weekday_hours,
-    saturday_minutes/60 as weekend_hours,
-    ROUND((saturday_minutes - monday_minutes)*100.0/monday_minutes, 2) as percent_difference
-FROM weekday_hours
-WHERE saturday_minutes > monday_minutes
-ORDER BY percent_difference DESC
-LIMIT 15;
+    city,
+    weekday_minutes / 60 AS weekday_hours,
+    weekend_minutes / 60 AS weekend_hours,
+    weekend_to_weekday_ratio
+FROM weekend_focused_businesses
+ORDER BY weekend_to_weekday_ratio DESC
+LIMIT 10;
+
 ```
 
 #### 7. Geographic Cluster Analysis
