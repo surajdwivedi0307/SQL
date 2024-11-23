@@ -1,4 +1,4 @@
-# Comprehensive Yelp Business Dataset SQL Analysis Guide
+# Comprehensive Yelp Business Dataset SQL Analysis
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -10,7 +10,7 @@
 
 ## Introduction
 
-This comprehensive guide provides detailed SQL queries for analyzing the Yelp business dataset using BigQuery. The queries are categorized by complexity level and include explanations, business value, and complete SQL code.
+This document provides detailed SQL queries for analyzing the Yelp business dataset using BigQuery. I have categorized the queries by complexity level and included explanations, business value, and complete SQL code.
 
 ## Dataset Schema
 
