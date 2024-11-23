@@ -70,7 +70,7 @@ LIMIT 10;
 
 #### 2. High-Rated Restaurant Analysis
 **Question:** Find all Mexican restaurants in San Francisco with a rating of 4.0 or higher that are currently open
-**Business Value:** Competitive analysis and benchmark identification
+**Business Value:** Competitive analysis
 ```sql
 SELECT 
     name,
