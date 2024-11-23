@@ -69,17 +69,13 @@ LIMIT 10;
 ```
 
 #### 2. High-Rated Restaurant Analysis
-**Question:** Find all Mexican restaurants in San Francisco with a rating of 4.0 or higher that are currently open
+**Question:** Find all Mexican restaurants in Berline with a rating of 4.0 or higher that are currently open
 **Business Value:** Competitive analysis
 ```sql
-SELECT 
-    name,
-    stars,
-    review_count,
-    address
+SELECT *
 FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
-WHERE city = 'San Francisco' 
-    AND 'Mexican' IN UNNEST(categories)
+WHERE city = 'Berlin' 
+    AND categories LIKE '%Mexican%'
     AND stars >= 4.0
     AND is_open = 1
 ORDER BY stars DESC;
