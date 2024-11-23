@@ -62,19 +62,30 @@ LIMIT 20;
 **Question:** What's the distribution of user tenure on the platform?
 **Business Value:** Understanding user retention patterns
 ```sql
+-- Step 1: Create a Common Table Expression (CTE) named `user_tenure` to calculate user tenure
 WITH user_tenure AS (
     SELECT 
-        EXTRACT(YEAR FROM CURRENT_DATE()) - EXTRACT(YEAR FROM DATE(yelping_since)) as years_on_platform,
-        COUNT(*) as user_count
+        -- Calculate the number of years a user has been on the platform
+        EXTRACT(YEAR FROM CURRENT_DATE()) - EXTRACT(YEAR FROM DATE(yelping_since)) AS years_on_platform,
+        -- Count the number of users with the same number of years on the platform
+        COUNT(*) AS user_count
     FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
+    -- Group by the number of years a user has been on the platform
     GROUP BY years_on_platform
 )
+
+-- Step 2: Use the CTE to calculate the percentage distribution of users based on their tenure
 SELECT 
+    -- Include the years of user tenure
     years_on_platform,
+    -- Include the count of users for each tenure
     user_count,
-    ROUND(user_count * 100.0 / SUM(user_count) OVER(), 2) as percentage
+    -- Calculate the percentage of users for each tenure relative to the total number of users
+    ROUND(user_count * 100.0 / SUM(user_count) OVER(), 2) AS percentage
 FROM user_tenure
+-- Sort the results by years on the platform in ascending order
 ORDER BY years_on_platform;
+
 ```
 
 ### Intermediate Level Queries
@@ -83,25 +94,82 @@ ORDER BY years_on_platform;
 **Question:** What characteristics define elite users compared to regular users?
 **Business Value:** Understanding valuable user segments
 ```sql
-WITH user_segments AS (
+-- Step 1: Create a Common Table Expression (CTE) to split the elite years into valid 4-digit years
+WITH elite_years AS (
     SELECT 
-        CASE WHEN ARRAY_LENGTH(elite) > 0 THEN 'Elite' ELSE 'Regular' END as user_type,
-        COUNT(*) as user_count,
-        AVG(review_count) as avg_reviews,
-        AVG(fans) as avg_fans,
-        AVG(average_stars) as avg_rating,
-        AVG(useful + funny + cool) as avg_vote_count,
-        AVG(compliment_hot + compliment_more + compliment_profile + 
+        -- Convert the elite value to a string and remove the decimal point
+        REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', '') AS elite_years_raw,
+        
+        -- Extract user-specific data
+        user_id,
+        name,
+        review_count,
+        fans,
+        average_stars,
+        useful,
+        funny,
+        cool,
+        compliment_hot,
+        compliment_more,
+        compliment_profile,
+        compliment_cute,
+        compliment_list,
+        compliment_note,
+        compliment_plain,
+        compliment_cool,
+        compliment_funny,
+        compliment_writer,
+        compliment_photos,
+        
+        -- Split the elite years string into an array of 4-digit substrings
+        ARRAY(SELECT SUBSTR(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', ''), pos, 4)
+              FROM UNNEST(GENERATE_ARRAY(1, LENGTH(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', '')) - 3, 4)) AS pos) AS elite_years_split
+    FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
+    WHERE elite IS NOT NULL AND elite > 0 -- Filter users with elite years
+)
+
+-- Step 2: Create user segments based on the presence of elite years
+, user_segments AS (
+    SELECT 
+        -- Classify users as 'Elite' if they have any valid 4-digit years, otherwise 'Regular'
+        CASE 
+            WHEN ARRAY_LENGTH(elite_years_split) > 0 THEN 'Elite' 
+            ELSE 'Regular' 
+        END AS user_type,
+        
+        -- Count the number of users in each segment
+        COUNT(*) AS user_count,
+        
+        -- Calculate the average number of reviews written by users in each segment
+        AVG(review_count) AS avg_reviews,
+        
+        -- Calculate the average number of fans per user in each segment
+        AVG(fans) AS avg_fans,
+        
+        -- Calculate the average star rating given by users in each segment
+        AVG(average_stars) AS avg_rating,
+        
+        -- Calculate the average total number of votes ('useful', 'funny', 'cool') received by users in each segment
+        AVG(useful + funny + cool) AS avg_vote_count,
+        
+        -- Calculate the average total number of compliments received by users in each segment
+        AVG(
+            compliment_hot + compliment_more + compliment_profile + 
             compliment_cute + compliment_list + compliment_note + 
             compliment_plain + compliment_cool + compliment_funny + 
-            compliment_writer + compliment_photos) as avg_compliments
-    FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
+            compliment_writer + compliment_photos
+        ) AS avg_compliments
+    FROM elite_years
     GROUP BY user_type
 )
+
+-- Step 3: Use the CTE to calculate the percentage of users in each segment
 SELECT 
     *,
-    ROUND(user_count * 100.0 / SUM(user_count) OVER(), 2) as percentage_of_users
+    -- Calculate the percentage of users in each segment relative to the total number of users
+    ROUND(user_count * 100.0 / SUM(user_count) OVER(), 2) AS percentage_of_users
 FROM user_segments;
+
 ```
 
 #### 4. Social Network Analysis
