@@ -116,7 +116,7 @@ FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
 WHERE elite IS NOT NULL AND elite > 0;  -- Filter users with elite years
 ```
 
-#### 3. Elite User Analysis
+#### 4. Elite User Analysis
 **Question:** What characteristics define elite users compared to regular users?
 **Business Value:** Understanding valuable user segments
 ```sql
@@ -196,6 +196,63 @@ SELECT
     ROUND(user_count * 100.0 / SUM(user_count) OVER(), 2) AS percentage_of_users
 FROM user_segments;
 
+```
+#### 5. Elite User Correlation
+```sql
+-- Part 1: Handle the 'elite' years treatment separately and calculate user metrics
+WITH elite_years_processed AS (
+    SELECT 
+        user_id,
+        name,
+        
+        -- Convert the 'elite' years into an array of 4-digit years
+        -- Remove the decimal, split the years into 4-digit substrings, and create an array
+        ARRAY(
+            SELECT SUBSTR(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', ''), pos, 4)
+            FROM UNNEST(GENERATE_ARRAY(1, LENGTH(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', '')) - 3, 4)) AS pos
+        ) AS elite_years_split,
+        
+        -- Calculate the number of years a user has been elite (number of 4-digit years)
+        ARRAY_LENGTH(
+            ARRAY(
+                SELECT SUBSTR(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', ''), pos, 4)
+                FROM UNNEST(GENERATE_ARRAY(1, LENGTH(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', '')) - 3, 4)) AS pos
+            )
+        ) AS elite_years_count,
+        
+        -- Other necessary user information
+        review_count,    -- Number of reviews written by the user
+        fans,            -- Number of fans the user has
+        useful + funny + cool AS total_votes_given,  -- Total votes given by the user
+        compliment_hot + compliment_more + compliment_profile + 
+        compliment_cute + compliment_list + compliment_note + 
+        compliment_plain + compliment_cool + compliment_funny + 
+        compliment_writer + compliment_photos AS total_compliments,  -- Total compliments received by the user
+        average_stars,   -- Average star rating given by the user
+        
+        -- Handle 'friends' as a comma-separated string, split it into an array and then count the number of friends
+        ARRAY_LENGTH(SPLIT(friends, ',')) AS friend_count  -- Number of friends the user has (split string into an array)
+    FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
+    WHERE elite IS NOT NULL AND elite > 0 -- Filter users who have elite years
+)
+
+-- Part 2: Calculate correlations between different user metrics
+SELECT 
+    -- Calculate correlation between review_count and fans (how reviews and fans relate)
+    CORR(review_count, fans) AS review_fan_correlation,
+    
+    -- Calculate correlation between review_count and total_compliments (how reviews and compliments relate)
+    CORR(review_count, total_compliments) AS review_compliment_correlation,
+    
+    -- Calculate correlation between friend_count and fans (how number of friends and fans relate)
+    CORR(friend_count, fans) AS friend_fan_correlation,
+    
+    -- Calculate correlation between elite_years_count and average_stars (how elite status relates to ratings)
+    CORR(elite_years_count, average_stars) AS elite_rating_correlation,
+    
+    -- Calculate correlation between total_votes_given and total_compliments (how voting and compliments relate)
+    CORR(total_votes_given, total_compliments) AS give_receive_correlation
+FROM elite_years_processed;
 ```
 
 #### 4. Social Network Analysis
