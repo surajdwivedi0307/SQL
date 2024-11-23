@@ -286,28 +286,38 @@ ORDER BY
 **Question:** Find businesses with significant rating variations compared to their category average
 **Business Value:** Performance benchmarking
 ```sql
+-- Calculate average rating and standard deviation for each category
 WITH category_stats AS (
     SELECT 
-        category,
-        AVG(stars) as category_avg,
-        STDDEV(stars) as category_stddev
+        category,                           -- Individual category extracted from the categories array
+        AVG(stars) as category_avg,         -- Average rating for businesses in this category
+        STDDEV(stars) as category_stddev    -- Standard deviation of ratings in this category
     FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
-    CROSS JOIN UNNEST(categories) as category
-    GROUP BY category
-    HAVING COUNT(*) >= 30
+    -- Extract each category from the comma-separated categories column into separate rows
+    CROSS JOIN UNNEST(SPLIT(categories, ", ")) as category
+    GROUP BY category                       -- Group by each category to calculate statistics
+    HAVING COUNT(*) >= 30                   -- Filter out categories with fewer than 30 businesses
 )
+
+-- Main query to identify businesses with unusual ratings in their category
 SELECT 
-    b.name,
-    b.city,
-    b.stars as business_rating,
-    c.category,
-    ROUND(c.category_avg, 2) as category_avg,
-    ROUND((b.stars - c.category_avg)/c.category_stddev, 2) as standard_deviations_from_mean
+    b.name,                                 -- Name of the business
+    b.city,                                 -- City where the business is located
+    b.stars as business_rating,             -- Rating of the business
+    c.category,                             -- Category under consideration
+    ROUND(c.category_avg, 2) as category_avg, -- Average rating for this category (rounded to 2 decimal places)
+    -- Calculate how far the business rating is from the category mean in terms of standard deviations
+    ROUND((b.stars - c.category_avg) / c.category_stddev, 2) as standard_deviations_from_mean
 FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp` b
-CROSS JOIN UNNEST(categories) as business_category
+-- Extract individual categories for each business
+CROSS JOIN UNNEST(SPLIT(b.categories, ", ")) as business_category
+-- Join with category_stats to get average and standard deviation for each category
 JOIN category_stats c ON business_category = c.category
-WHERE ABS(b.stars - c.category_avg) >= 2*c.category_stddev
-ORDER BY ABS(b.stars - c.category_avg)/c.category_stddev DESC;
+-- Filter businesses with ratings far from the category mean (≥ 2 standard deviations)
+WHERE ABS(b.stars - c.category_avg) >= 2 * c.category_stddev
+-- Sort businesses by the number of standard deviations they deviate from their category mean, descending
+ORDER BY ABS(b.stars - c.category_avg) / c.category_stddev DESC;
+
 ```
 
 #### 10. Business Success Pattern Analysis
