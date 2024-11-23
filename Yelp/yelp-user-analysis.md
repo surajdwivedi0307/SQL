@@ -302,27 +302,55 @@ LIMIT 20;
 **Question:** What's the correlation between user activity and reception?
 **Business Value:** Understanding engagement drivers
 ```sql
+-- Step 1: Handle friends and elite years separately and calculate user metrics
 WITH user_metrics AS (
     SELECT 
-        review_count,
-        fans,
-        useful + funny + cool as total_votes_given,
+        review_count,    -- Number of reviews written by the user
+        fans,            -- Number of fans the user has
+        
+        -- Calculate the total votes given by summing the 'useful', 'funny', and 'cool' votes
+        useful + funny + cool AS total_votes_given,
+        
+        -- Calculate the total number of compliments received by summing all compliment types
         compliment_hot + compliment_more + compliment_profile + 
         compliment_cute + compliment_list + compliment_note + 
         compliment_plain + compliment_cool + compliment_funny + 
-        compliment_writer + compliment_photos as total_compliments,
-        average_stars,
-        ARRAY_LENGTH(friends) as friend_count,
-        ARRAY_LENGTH(elite) as elite_years
+        compliment_writer + compliment_photos AS total_compliments,
+        
+        average_stars,   -- Average star rating given by the user
+        
+        -- Handle 'friends' as a comma-separated string: split it into an array and count the number of friends
+        ARRAY_LENGTH(SPLIT(friends, ',')) AS friend_count,  -- Number of friends the user has
+        
+        -- Handle 'elite' years as a concatenated string of years
+        ARRAY_LENGTH(
+            ARRAY(
+                SELECT SUBSTR(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', ''), pos, 4)
+                FROM UNNEST(GENERATE_ARRAY(1, LENGTH(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', '')) - 3, 4)) AS pos
+            )
+        ) AS elite_years  -- Number of years the user has been elite
     FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
+    WHERE elite IS NOT NULL AND elite > 0  -- Filter users who have elite years
 )
+
+-- Step 2: Calculate correlations between different user metrics
 SELECT 
-    CORR(review_count, fans) as review_fan_correlation,
-    CORR(review_count, total_compliments) as review_compliment_correlation,
-    CORR(friend_count, fans) as friend_fan_correlation,
-    CORR(elite_years, average_stars) as elite_rating_correlation,
-    CORR(total_votes_given, total_compliments) as give_receive_correlation
+    -- Calculate correlation between review_count and fans (how reviews and fans relate)
+    CORR(review_count, fans) AS review_fan_correlation,
+    
+    -- Calculate correlation between review_count and total_compliments (how reviews and compliments relate)
+    CORR(review_count, total_compliments) AS review_compliment_correlation,
+    
+    -- Calculate correlation between friend_count and fans (how number of friends and fans relate)
+    CORR(friend_count, fans) AS friend_fan_correlation,
+    
+    -- Calculate correlation between elite_years and average_stars (how elite status relates to ratings)
+    CORR(elite_years, average_stars) AS elite_rating_correlation,
+    
+    -- Calculate correlation between total_votes_given and total_compliments (how voting and compliments relate)
+    CORR(total_votes_given, total_compliments) AS give_receive_correlation
 FROM user_metrics;
+
 ```
 
 #### 6. User Growth Analysis
