@@ -363,8 +363,101 @@ GROUP BY compliment_range
 ORDER BY user_count DESC;
 ```
 
-## Contributing
-Feel free to submit issues and enhancement requests.
+To help you understand how **partitioning** and **sharding** can be used in SQL queries, I will provide examples for each concept. Both techniques are used to optimize query performance, particularly on large datasets.
 
-## License
-This project is licensed under the MIT License.
+### 1. **Partitioning Example**
+
+**Partitioning** divides a large table into smaller, more manageable pieces (called partitions) based on a specified column, often a date or numeric range. Each partition is stored separately, which makes querying more efficient when accessing specific partitions.
+
+#### Example Query Using **Partitioning** (on `yelping_since`)
+
+Let’s say you have a table `user` that stores user data, and it's partitioned by the `yelping_since` column (e.g., users who joined in a specific year are in a partition for that year). In this query, we'll utilize partitioning to efficiently query user data by `join year`.
+
+```sql
+-- Example: Query partitioned by the 'yelping_since' column (assumed to be partitioned by year)
+SELECT 
+    EXTRACT(YEAR FROM DATE(yelping_since)) AS join_year,  -- Extract the year from the join date
+    COUNT(*) AS new_users,  -- Count the number of new users who joined in the year
+    AVG(review_count) AS avg_reviews_per_user  -- Calculate the average number of reviews per user
+FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
+WHERE yelping_since BETWEEN '2010-01-01' AND '2020-12-31'  -- Filter users who joined between 2010 and 2020
+-- Ensure the query uses the partitions effectively by limiting the query range.
+PARTITION BY EXTRACT(YEAR FROM DATE(yelping_since))  -- Partition by the join year
+GROUP BY join_year
+ORDER BY join_year;
+```
+
+### **Explanation:**
+- **`PARTITION BY`**: This partitions the query results by the `join_year`, which is extracted from the `yelping_since` column. The partitioning allows BigQuery (or any partitioned database) to process only the relevant partitions (years in this case), improving performance by avoiding full table scans.
+- **`WHERE yelping_since BETWEEN '2010-01-01' AND '2020-12-31'`**: The `WHERE` clause helps to narrow down the partitions scanned (only users who joined between 2010 and 2020), making the query more efficient.
+
+---
+
+### 2. **Sharding Example**
+
+**Sharding** involves breaking a large dataset into smaller, horizontally partitioned chunks, typically across multiple databases or servers. Unlike partitioning, which is usually done within a single table, sharding distributes the data across multiple systems.
+
+#### Example Query Using **Sharding** (Across Multiple Databases)
+
+Let’s assume that the dataset is sharded by `user_id` across different databases or systems. This would allow you to query data from specific shards (or databases) based on the `user_id`.
+
+```sql
+-- Example: Query across different shards (databases) by user_id
+SELECT 
+    user_id,  -- Select the user ID
+    name,  -- Select the user's name
+    review_count,  -- Number of reviews written by the user
+    fans,  -- Number of fans the user has
+    AVG(average_stars) AS avg_rating_given  -- Average star rating given by the user
+FROM 
+    `shard_db_1.long-loop-442611-j5.Yelp_Business_Part1.user` AS shard_1  -- First shard
+UNION ALL
+SELECT 
+    user_id,
+    name,
+    review_count,
+    fans,
+    AVG(average_stars) AS avg_rating_given
+FROM 
+    `shard_db_2.long-loop-442611-j5.Yelp_Business_Part1.user` AS shard_2  -- Second shard
+WHERE user_id BETWEEN 10000 AND 20000  -- Filter to select users from a specific range of user IDs
+UNION ALL
+SELECT 
+    user_id,
+    name,
+    review_count,
+    fans,
+    AVG(average_stars) AS avg_rating_given
+FROM 
+    `shard_db_3.long-loop-442611-j5.Yelp_Business_Part1.user` AS shard_3  -- Third shard
+WHERE user_id BETWEEN 20001 AND 30000  -- Filter to select users from another range of user IDs
+GROUP BY user_id, name, review_count, fans
+ORDER BY avg_rating_given DESC  -- Order by average rating given in descending order
+LIMIT 15;
+```
+
+### **Explanation:**
+- **Sharded Databases**: In this example, the data is distributed across three different databases or shards (`shard_db_1`, `shard_db_2`, and `shard_db_3`). Each shard contains a portion of the data based on `user_id`.
+- **`UNION ALL`**: This is used to combine the results from all three shards.
+- **Range of `user_id`**: Each query to the shard is filtered by a range of `user_id` values to ensure that data is only queried from the appropriate shard.
+- **Aggregations**: The query aggregates the `avg_rating_given` across the shards, summing up reviews, fans, and ratings per user, then orders the results by the average rating.
+- **`LIMIT 15`**: This limits the output to the top 15 users with the highest average ratings.
+
+### Key Notes on **Sharding**:
+- Sharding helps scale large datasets across multiple servers or databases, reducing the load on any single database.
+- The **range-based filtering** (`WHERE user_id BETWEEN ...`) helps the query target specific shards, reducing the amount of data that needs to be scanned.
+- The **`UNION ALL`** combines the results from all the shards into a single output.
+
+---
+
+### **Partitioning vs Sharding:**
+- **Partitioning** usually works within a **single database** and is often based on a single column (e.g., date ranges or numerical ranges). It can be handled within the same database system by the database engine itself.
+- **Sharding** works by distributing the data across **multiple databases or servers**, which requires manually managing the distribution of data and querying across multiple systems.
+
+---
+
+### Conclusion:
+- **Partitioning** helps optimize performance by narrowing down data within a partition of the same database.
+- **Sharding** helps handle very large datasets by distributing them across multiple databases or servers, often using a distributed system.
+
+Let me know if you need more examples or further clarification on these techniques!
