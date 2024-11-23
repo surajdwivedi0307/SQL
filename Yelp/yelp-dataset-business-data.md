@@ -113,10 +113,11 @@ SELECT
     COUNT(*) as category_count,
     ROUND(COUNT(*) * 100.0 / cb.total, 2) as percentage
 FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp` b
-CROSS JOIN UNNEST(categories) as category
+CROSS JOIN UNNEST(SPLIT(categories, ', ')) as category
 JOIN city_businesses cb ON b.city = cb.city
 GROUP BY b.city, category, cb.total
 ORDER BY b.city, category_count DESC;
+
 ```
 
 #### 5. Operating Hours Analysis
