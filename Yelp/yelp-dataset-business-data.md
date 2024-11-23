@@ -148,15 +148,15 @@ WITH business_hours AS (
     SELECT 
         name,
         city,
-        PARSE_TIME('%H:%M', SPLIT(hours.Monday, '-')[OFFSET(1)]) as closing_time,
-        PARSE_TIME('%H:%M', SPLIT(hours.Monday, '-')[OFFSET(0)]) as opening_time,
+        PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Monday'), '-')[OFFSET(0)]) as opening_time,
+        PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Monday'), '-')[OFFSET(1)]) as closing_time,
         TIME_DIFF(
-            PARSE_TIME('%H:%M', SPLIT(hours.Monday, '-')[OFFSET(1)]),
-            PARSE_TIME('%H:%M', SPLIT(hours.Monday, '-')[OFFSET(0)]),
+            PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Monday'), '-')[OFFSET(1)]),
+            PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Monday'), '-')[OFFSET(0)]),
             HOUR
         ) as hours_open
     FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
-    WHERE hours.Monday IS NOT NULL
+    WHERE JSON_EXTRACT_SCALAR(hours, '$.Monday') IS NOT NULL
 )
 SELECT 
     name,
@@ -167,6 +167,7 @@ SELECT
 FROM business_hours
 ORDER BY hours_open DESC
 LIMIT 10;
+
 ```
 
 ### Advanced Level Queries
