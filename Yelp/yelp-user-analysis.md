@@ -358,37 +358,64 @@ ORDER BY join_year;
 **Question:** What types of compliments are most common and their relationship with user engagement?
 **Business Value:** Understanding user recognition patterns
 ```sql
+-- Step 1: Create a Common Table Expression (CTE) to calculate the total compliments received for each compliment type
 WITH compliment_totals AS (
     SELECT 
-        'hot' as compliment_type, SUM(compliment_hot) as total
+        'hot' AS compliment_type,   -- Assigning the type of compliment ('hot')
+        SUM(compliment_hot) AS total   -- Summing the total compliments of type 'hot'
     FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
-    UNION ALL SELECT 'more', SUM(compliment_more)
+
+    -- Using UNION ALL to combine the results of multiple queries that sum the compliments for each type
+    UNION ALL 
+    SELECT 'more', SUM(compliment_more)  -- Summing the compliments of type 'more'
     FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
-    UNION ALL SELECT 'profile', SUM(compliment_profile)
+    
+    UNION ALL 
+    SELECT 'profile', SUM(compliment_profile)  -- Summing the compliments of type 'profile'
     FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
-    UNION ALL SELECT 'cute', SUM(compliment_cute)
+    
+    UNION ALL 
+    SELECT 'cute', SUM(compliment_cute)  -- Summing the compliments of type 'cute'
     FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
-    UNION ALL SELECT 'list', SUM(compliment_list)
+    
+    UNION ALL 
+    SELECT 'list', SUM(compliment_list)  -- Summing the compliments of type 'list'
     FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
-    UNION ALL SELECT 'note', SUM(compliment_note)
+    
+    UNION ALL 
+    SELECT 'note', SUM(compliment_note)  -- Summing the compliments of type 'note'
     FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
-    UNION ALL SELECT 'plain', SUM(compliment_plain)
+    
+    UNION ALL 
+    SELECT 'plain', SUM(compliment_plain)  -- Summing the compliments of type 'plain'
     FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
-    UNION ALL SELECT 'cool', SUM(compliment_cool)
+    
+    UNION ALL 
+    SELECT 'cool', SUM(compliment_cool)  -- Summing the compliments of type 'cool'
     FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
-    UNION ALL SELECT 'funny', SUM(compliment_funny)
+    
+    UNION ALL 
+    SELECT 'funny', SUM(compliment_funny)  -- Summing the compliments of type 'funny'
     FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
-    UNION ALL SELECT 'writer', SUM(compliment_writer)
+    
+    UNION ALL 
+    SELECT 'writer', SUM(compliment_writer)  -- Summing the compliments of type 'writer'
     FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
-    UNION ALL SELECT 'photos', SUM(compliment_photos)
+    
+    UNION ALL 
+    SELECT 'photos', SUM(compliment_photos)  -- Summing the compliments of type 'photos'
     FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
 )
+
+-- Step 2: Select from the CTE and calculate the percentage of each compliment type
 SELECT 
-    compliment_type,
-    total,
-    ROUND(total * 100.0 / SUM(total) OVER(), 2) as percentage
-FROM compliment_totals
-ORDER BY total DESC;
+    compliment_type,  -- The type of compliment (e.g., 'hot', 'more', 'profile', etc.)
+    total,            -- The total number of compliments received for this type
+    -- Calculate the percentage of each compliment type relative to the total compliments across all types
+    ROUND(total * 100.0 / SUM(total) OVER(), 2) AS percentage  -- Use SUM() OVER() to get the total across all compliment types
+FROM compliment_totals  -- From the compliment_totals CTE
+ORDER BY total DESC;  -- Order by the total number of compliments in descending order (most received compliments first)
+
 ```
 
 Based on the structure and type of analysis from the provided file, here’s a similar exercise for the **Yelp_User_Part1** dataset based on its schema:
