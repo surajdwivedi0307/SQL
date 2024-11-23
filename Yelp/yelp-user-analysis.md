@@ -90,6 +90,31 @@ ORDER BY years_on_platform;
 
 ### Intermediate Level Queries
 
+#### 3. Elite User Handling 
+-- Part 1: Handle the 'elite' years treatment separately and calculate user metrics
+
+SELECT 
+    user_id,
+    name,
+    
+    -- Convert the 'elite' years into an array of 4-digit years
+    -- Remove the decimal, split the years into 4-digit substrings, and create an array
+    ARRAY(
+        SELECT SUBSTR(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', ''), pos, 4)
+        FROM UNNEST(GENERATE_ARRAY(1, LENGTH(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', '')) - 3, 4)) AS pos
+    ) AS elite_years_split,
+    
+    -- Calculate the number of years a user has been elite (number of 4-digit years)
+    ARRAY_LENGTH(
+        ARRAY(
+            SELECT SUBSTR(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', ''), pos, 4)
+            FROM UNNEST(GENERATE_ARRAY(1, LENGTH(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', '')) - 3, 4)) AS pos
+        )
+    ) AS elite_years_count
+FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
+WHERE elite IS NOT NULL AND elite > 0;  -- Filter users with elite years
+
+
 #### 3. Elite User Analysis
 **Question:** What characteristics define elite users compared to regular users?
 **Business Value:** Understanding valuable user segments
@@ -178,18 +203,39 @@ FROM user_segments;
 ```sql
 SELECT 
     name,
-    ARRAY_LENGTH(friends) as friend_count,
+    
+    -- Check if 'friends' is stored as an array (standard case)
+    -- If 'friends' is already an array, use ARRAY_LENGTH directly
+    -- If it's stored as a string, we'll split it by commas to treat it as an array
+    ARRAY_LENGTH(SPLIT(friends, ',')) AS friend_count,  -- Count number of friends by splitting the string
+
+    -- Extract the number of fans a user has
     fans,
+    
+    -- Count the total number of reviews written by the user
     review_count,
+    
+    -- Calculate the average star rating for all reviews by the user
     average_stars,
-    useful + funny + cool as total_votes_given,
+    
+    -- Sum up the total votes given by the user: 'useful', 'funny', 'cool'
+    useful + funny + cool AS total_votes_given,
+    
+    -- Calculate the total number of compliments received by the user.
+    -- This adds up the number of compliments in different categories.
     compliment_hot + compliment_more + compliment_profile + 
     compliment_cute + compliment_list + compliment_note + 
     compliment_plain + compliment_cool + compliment_funny + 
-    compliment_writer + compliment_photos as total_compliments_received
+    compliment_writer + compliment_photos AS total_compliments_received
+
 FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
+
+-- Order the users by the number of friends in descending order to show the most socially connected users
 ORDER BY friend_count DESC
+
+-- Limit the results to the top 20 users based on the number of friends
 LIMIT 20;
+
 ```
 
 ### Advanced Level Queries
