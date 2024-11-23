@@ -91,6 +91,7 @@ ORDER BY years_on_platform;
 ### Intermediate Level Queries
 
 #### 3. Elite User Handling 
+```sql
 -- Part 1: Handle the 'elite' years treatment separately and calculate user metrics
 
 SELECT 
@@ -113,7 +114,7 @@ SELECT
     ) AS elite_years_count
 FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
 WHERE elite IS NOT NULL AND elite > 0;  -- Filter users with elite years
-
+```
 
 #### 3. Elite User Analysis
 **Question:** What characteristics define elite users compared to regular users?
