@@ -309,15 +309,28 @@ LIMIT 20;
 ```sql
 WITH yearly_cohorts AS (
     SELECT 
-        EXTRACT(YEAR FROM DATE(yelping_since)) as join_year,
-        COUNT(*) as new_users,
-        AVG(review_count) as avg_reviews_per_user,
-        AVG(fans) as avg_fans_per_user,
-        SUM(CASE WHEN ARRAY_LENGTH(elite) > 0 THEN 1 ELSE 0 END) as elite_users,
-        AVG(average_stars) as avg_rating_given
+        EXTRACT(YEAR FROM DATE(yelping_since)) AS join_year,  -- Extract the year when the user joined
+        COUNT(*) AS new_users,  -- Count the number of new users in each year
+        AVG(review_count) AS avg_reviews_per_user,  -- Average number of reviews per user in the year
+        AVG(fans) AS avg_fans_per_user,  -- Average number of fans per user in the year
+        
+        -- Calculate the number of elite users by counting users who have elite years
+        SUM(
+            CASE 
+                WHEN ARRAY_LENGTH(
+                    ARRAY(
+                        SELECT SUBSTR(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', ''), pos, 4)
+                        FROM UNNEST(GENERATE_ARRAY(1, LENGTH(REGEXP_REPLACE(CAST(elite AS STRING), r'\.0$', '')) - 3, 4)) AS pos
+                    )
+                ) > 0 
+                THEN 1 ELSE 0 
+            END
+        ) AS elite_users,  -- Number of users who have been elite
+        
+        AVG(average_stars) AS avg_rating_given  -- Average star rating given by users
     FROM `long-loop-442611-j5.Yelp_Business_Part1.user`
-    GROUP BY join_year
-    HAVING join_year >= 2004
+    GROUP BY join_year  -- Group by the year users joined
+    HAVING join_year >= 2004  -- Filter to include only users from 2004 onwards
 )
 SELECT 
     join_year,
@@ -325,13 +338,20 @@ SELECT
     avg_reviews_per_user,
     avg_fans_per_user,
     elite_users,
-    ROUND(elite_users * 100.0 / new_users, 2) as elite_percentage,
+    ROUND(elite_users * 100.0 / new_users, 2) AS elite_percentage,  -- Calculate the percentage of elite users
     avg_rating_given,
-    LAG(new_users) OVER (ORDER BY join_year) as prev_year_users,
-    ROUND((new_users - LAG(new_users) OVER (ORDER BY join_year)) * 100.0 / 
-        NULLIF(LAG(new_users) OVER (ORDER BY join_year), 0), 2) as yoy_growth
+    
+    -- Calculate the number of new users in the previous year using the LAG function
+    LAG(new_users) OVER (ORDER BY join_year) AS prev_year_users,
+    
+    -- Calculate the year-on-year (YoY) growth in new users
+    ROUND(
+        (new_users - LAG(new_users) OVER (ORDER BY join_year)) * 100.0 / 
+        NULLIF(LAG(new_users) OVER (ORDER BY join_year), 0), 2
+    ) AS yoy_growth
 FROM yearly_cohorts
 ORDER BY join_year;
+
 ```
 
 #### 7. Compliment Analysis
