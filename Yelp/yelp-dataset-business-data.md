@@ -324,44 +324,57 @@ ORDER BY ABS(b.stars - c.category_avg) / c.category_stddev DESC;
 **Question:** Analyze business success patterns based on operating hours and location
 **Business Value:** Success factor identification
 ```sql
+-- Step 1: Extract business operating hours on Monday and associated details
 WITH business_operating_hours AS (
     SELECT 
-        business_id,
+        business_id,                                    -- Unique identifier for the business
+        -- Calculate Monday operating hours in hours using TIME_DIFF
         TIME_DIFF(
-            PARSE_TIME('%H:%M', SPLIT(hours.Monday, '-')[OFFSET(1)]),
-            PARSE_TIME('%H:%M', SPLIT(hours.Monday, '-')[OFFSET(0)]),
+            PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Monday'), '-')[OFFSET(1)]),
+            PARSE_TIME('%H:%M', SPLIT(JSON_EXTRACT_SCALAR(hours, '$.Monday'), '-')[OFFSET(0)]),
             HOUR
         ) as monday_hours,
-        city,
-        state,
-        stars,
-        review_count
+        city,                                          -- City where the business is located
+        state,                                         -- State where the business is located
+        stars,                                         -- Rating of the business
+        review_count                                   -- Number of reviews for the business
     FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
-    WHERE hours.Monday IS NOT NULL
+    -- Ensure businesses have defined hours for Monday
+    WHERE JSON_EXTRACT_SCALAR(hours, '$.Monday') IS NOT NULL
 ),
+
+-- Step 2: Calculate city-level statistics for cities with sufficient businesses
 city_stats AS (
     SELECT 
-        city,
-        state,
-        AVG(stars) as city_avg_rating,
-        COUNT(*) as total_businesses
+        city,                                          -- City name
+        state,                                         -- State name
+        AVG(stars) as city_avg_rating,                -- Average rating of businesses in the city
+        COUNT(*) as total_businesses                  -- Total number of businesses in the city
     FROM `long-loop-442611-j5.Yelp_Business_Part1.business_yelp`
-    GROUP BY city, state
-    HAVING COUNT(*) >= 50
+    GROUP BY city, state                              -- Group by city and state
+    HAVING COUNT(*) >= 50                             -- Include cities with at least 50 businesses
 )
+
+-- Step 3: Combine business and city statistics and calculate required metrics
 SELECT 
-    b.city,
-    b.state,
+    b.city,                                           -- City name
+    b.state,                                          -- State name
+    -- Average operating hours for businesses in the city (rounded to 1 decimal place)
     ROUND(AVG(monday_hours), 1) as avg_operating_hours,
-    ROUND(AVG(CASE WHEN stars > cs.city_avg_rating THEN 1.0 ELSE 0.0 END) * 100, 2) as pct_above_city_avg,
-    ROUND(AVG(stars), 2) as avg_rating,
-    ROUND(AVG(review_count), 0) as avg_reviews
+    -- Percentage of businesses with above-average ratings compared to their city's average
+    ROUND(AVG(CASE WHEN b.stars > cs.city_avg_rating THEN 1.0 ELSE 0.0 END) * 100, 2) as pct_above_city_avg,
+    -- Average rating of businesses in the city (rounded to 2 decimal places)
+    ROUND(AVG(b.stars), 2) as avg_rating,
+    -- Average review count for businesses in the city (rounded to nearest whole number)
+    ROUND(AVG(b.review_count), 0) as avg_reviews
 FROM business_operating_hours b
+-- Join city statistics to match business and city-level data
 JOIN city_stats cs ON b.city = cs.city AND b.state = cs.state
-GROUP BY b.city, b.state
-HAVING avg_operating_hours IS NOT NULL
-ORDER BY pct_above_city_avg DESC
-LIMIT 20;
+GROUP BY b.city, b.state                             -- Group by city and state for aggregation
+HAVING avg_operating_hours IS NOT NULL               -- Include only cities with valid operating hours
+ORDER BY pct_above_city_avg DESC                     -- Order by percentage of above-average businesses
+LIMIT 20;                                            -- Limit results to the top 20 cities
+
 ```
 
 ## Best Practices
