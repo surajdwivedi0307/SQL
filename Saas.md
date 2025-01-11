@@ -53,9 +53,9 @@ WHERE Account_ID LIKE '%dc6af4';
 
 ### **3. Match Account IDs Containing the Substring**
 ```sql
-SELECT Account_ID, Quota_Used, MRR
+SELECT DISTINCT Account_ID
 FROM `long-loop-442611-j5.saas.saas_base`
-WHERE Account_ID LIKE '%452b%';
+WHERE Account_ID LIKE '%dc6af4%';
 ```
 - Matches `Account_ID` values that **contain** `452b`.
 
@@ -63,7 +63,7 @@ WHERE Account_ID LIKE '%452b%';
 
 ### **4. Case-Insensitive Match for Similar IDs**
 ```sql
-SELECT Account_ID, Quota_Used, MRR
+SELECT Account_ID,Month, Quota_Used, MRR
 FROM `long-loop-442611-j5.saas.saas_base`
 WHERE LOWER(Account_ID) LIKE LOWER('%562C88AD%');
 ```
@@ -83,9 +83,9 @@ WHERE REGEXP_CONTAINS(Account_ID, r'562c88ad');
 
 ### **6. Match Multiple Similar IDs**
 ```sql
-SELECT Account_ID, Quota_Used, MRR
+SELECT DISTINCT(Account_ID)
 FROM `long-loop-442611-j5.saas.saas_base`
-WHERE Account_ID IN ('562c88ad-81fb-452b-b93b-dc6af4', '562c88ad-xyzb-123b-b93b-dc6af4');
+WHERE Account_ID IN ('562c88ad-81fb-452b-b93b-dc6af4773752','dcaa0f95-1220-4261-a5ad-1562cbdae22f');
 ```
 - Matches rows where the `Account_ID` is **one of several predefined IDs**.
 
