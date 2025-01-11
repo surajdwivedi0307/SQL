@@ -170,12 +170,12 @@ FROM `long-loop-442611-j5.saas.saas_base`;
 
 9. **Use a subquery to find accounts with an `MRR` above the average `MRR` for their `Contract_Type`.**
    ```sql
-                SELECT 
+    SELECT 
     main.Account_ID, 
     main.Country, 
     main.max_mrr, 
     country_avg.avg_mrr
-   FROM 
+    FROM 
      (
         SELECT 
             Account_ID, 
@@ -186,7 +186,7 @@ FROM `long-loop-442611-j5.saas.saas_base`;
         GROUP BY 
             Account_ID, Country
       ) main
-  JOIN 
+    JOIN 
     (
         SELECT 
             Country, 
@@ -196,10 +196,10 @@ FROM `long-loop-442611-j5.saas.saas_base`;
         GROUP BY 
             Country
     ) country_avg
-ON 
-    main.Country = country_avg.Country
-   WHERE 
-   main.max_mrr > country_avg.avg_mrr;
+    ON 
+      main.Country = country_avg.Country
+     WHERE 
+     main.max_mrr > country_avg.avg_mrr;
 
    ```
 
