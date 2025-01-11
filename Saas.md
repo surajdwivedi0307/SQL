@@ -93,7 +93,7 @@ WHERE Account_ID IN ('562c88ad-81fb-452b-b93b-dc6af4773752','dcaa0f95-1220-4261-
 
 ### **7. Exclude Specific Similar IDs**
 ```sql
-SELECT Account_ID, Quota_Used, MRR
+SELECT DISTINCT(Account_ID), Quota_Used, MRR
 FROM `long-loop-442611-j5.saas.saas_base`
 WHERE Account_ID LIKE '%562c88ad%' AND Account_ID NOT IN ('562c88ad-81fb-452b-b93b-dc6af4');
 ```
@@ -113,9 +113,10 @@ WHERE LENGTH(Account_ID) = 36 AND Account_ID LIKE '%562c88ad%';
 
 ### **9. Use Wildcard Matching for Variations**
 ```sql
-SELECT Account_ID, Quota_Used, MRR
+SELECT DISTINCT(Account_ID), MRR
 FROM `long-loop-442611-j5.saas.saas_base`
-WHERE Account_ID LIKE '562c%-%-%';
+WHERE Account_ID LIKE '562c%-%-%'
+ORDER BY MRR DESC;
 ```
 - Matches `Account_ID` patterns like `562cXXXXX-XXXXX-XXXXX`.
 
