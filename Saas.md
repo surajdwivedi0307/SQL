@@ -335,20 +335,20 @@ Here are some **very basic** to **advanced** examples of **window functions**:
 
 6. **Calculating a moving average: Using `AVG()` with a window function to calculate a 3-month moving average of `MRR`.**
    ```sql
-   SELECT 
-    Account_ID, 
-    Month, 
-    MRR,
-    AVG(MRR) OVER (PARTITION BY Account_ID ORDER BY Month ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS moving_avg,
-    LEAD(MRR) OVER (PARTITION BY Account_ID ORDER BY Month) AS next_mrr,
-    LAG(MRR) OVER (PARTITION BY Account_ID ORDER BY Month) AS previous_mrr,
-    FIRST_VALUE(Month) OVER (PARTITION BY Account_ID ORDER BY Month ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS 
-      first_month,
-    LAST_VALUE(Month) OVER (PARTITION BY Account_ID ORDER BY Month ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS 
-      last_month
-  FROM `long-loop-442611-j5.saas.saas_base`
-  WHERE Account_ID='01732900-b003-4cfb-9be4-40fde466ee5c'
-  ORDER BY Month;
+     SELECT 
+       Account_ID, 
+       Month, 
+       MRR,
+       AVG(MRR) OVER (PARTITION BY Account_ID ORDER BY Month ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS moving_avg,
+       LEAD(MRR) OVER (PARTITION BY Account_ID ORDER BY Month) AS next_mrr,
+       LAG(MRR) OVER (PARTITION BY Account_ID ORDER BY Month) AS previous_mrr,
+       FIRST_VALUE(Month) OVER (PARTITION BY Account_ID ORDER BY Month ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS 
+         first_month,
+       LAST_VALUE(Month) OVER (PARTITION BY Account_ID ORDER BY Month ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS 
+         last_month
+     FROM `long-loop-442611-j5.saas.saas_base`
+     WHERE Account_ID='01732900-b003-4cfb-9be4-40fde466ee5c'
+     ORDER BY Month;
    ```
    - This query calculates the moving average of `MRR` over the past 3 months for each `Account_ID`.
 
