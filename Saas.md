@@ -165,17 +165,7 @@ FROM `long-loop-442611-j5.saas.saas_base`;
 
 8. **Join the table with itself to compare `MRR` for accounts with the same `Industry` but different `Geography`.**
    ```sql
-   SELECT 
-       a.Account_ID AS account_1, 
-       b.Account_ID AS account_2, 
-       a.Industry, 
-       a.Geography AS geography_1, 
-       b.Geography AS geography_2, 
-       a.MRR AS mrr_1, 
-       b.MRR AS mrr_2
-   FROM `long-loop-442611-j5.saas.saas_base` a
-   JOIN `long-loop-442611-j5.saas.saas_base` b
-   ON a.Industry = b.Industry AND a.Geography != b.Geography;
+    ------
    ```
 
 9. **Use a subquery to find accounts with an `MRR` above the average `MRR` for their `Contract_Type`.**
