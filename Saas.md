@@ -150,17 +150,17 @@ FROM `long-loop-442611-j5.saas.saas_base`;
     SELECT Country, AVG(MRR) AS avg_mrr
     FROM `long-loop-442611-j5.saas.saas_base`
     GROUP BY Country
-)
-SELECT 
-Country,
-avg_mrr,
+   )
+   SELECT 
+   Country,
+   avg_mrr,
     CASE 
         WHEN avg_mrr < 500 THEN 'Small'
         WHEN avg_mrr BETWEEN 500 AND 2000 THEN 'Medium'
         ELSE 'Large'
-    END AS country_mrr_bucket
-FROM country_mrr
-WHERE avg_mrr > 50;
+   END AS country_mrr_bucket
+   FROM country_mrr
+   WHERE avg_mrr > 50;
    ```
 
 8. **Join the table with itself to compare `MRR` for accounts with the same `Industry` but different `Geography`.**
