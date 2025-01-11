@@ -32,9 +32,10 @@ Here are 15 SQL questions progressively moving from basic to advanced concepts, 
 
 ### **1. Match Account IDs Starting with the Substring**
 ```sql
-SELECT Account_ID, Quota_Used, MRR
+SELECT COUNT(Account_ID) as AccountNos, Product
 FROM `long-loop-442611-j5.saas.saas_base`
-WHERE Account_ID LIKE '562c88ad%';
+WHERE Account_ID LIKE '562c88ad%'
+GROUP BY Product;
 ```
 - Matches `Account_ID` values that **start with** `562c88ad`.
 
