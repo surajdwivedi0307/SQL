@@ -15,9 +15,9 @@ Here are 15 SQL questions progressively moving from basic to advanced concepts, 
    FROM `long-loop-442611-j5.saas.saas_base`;
    ```
 
-3. **Find all distinct `Contract_Type` values in the table.**
+3. **Find all distinct `Pricing Model` values in the table.**
    ```sql
-   SELECT DISTINCT Contract_Type
+   SELECT DISTINCT Pricing_Model
    FROM `long-loop-442611-j5.saas.saas_base`;
    ```
 
