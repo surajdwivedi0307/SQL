@@ -26,9 +26,101 @@ Here are 15 SQL questions progressively moving from basic to advanced concepts, 
 ### **Intermediate Questions**
 4. **Filter all accounts with `Quota_Used` greater than 80.**
    ```sql
-   SELECT Account_ID, Quota_Used, MRR
-   FROM `long-loop-442611-j5.saas.saas_base`
-   WHERE Quota_Used > 80;
+  Here are several variants of your query, depending on the pattern or similarity you are looking for:
+
+---
+
+### **1. Match Account IDs Starting with the Substring**
+```sql
+SELECT Account_ID, Quota_Used, MRR
+FROM `long-loop-442611-j5.saas.saas_base`
+WHERE Account_ID LIKE '562c88ad%';
+```
+- Matches `Account_ID` values that **start with** `562c88ad`.
+
+---
+
+### **2. Match Account IDs Ending with the Substring**
+```sql
+SELECT Account_ID, Quota_Used, MRR
+FROM `long-loop-442611-j5.saas.saas_base`
+WHERE Account_ID LIKE '%dc6af4';
+```
+- Matches `Account_ID` values that **end with** `dc6af4`.
+
+---
+
+### **3. Match Account IDs Containing the Substring**
+```sql
+SELECT Account_ID, Quota_Used, MRR
+FROM `long-loop-442611-j5.saas.saas_base`
+WHERE Account_ID LIKE '%452b%';
+```
+- Matches `Account_ID` values that **contain** `452b`.
+
+---
+
+### **4. Case-Insensitive Match for Similar IDs**
+```sql
+SELECT Account_ID, Quota_Used, MRR
+FROM `long-loop-442611-j5.saas.saas_base`
+WHERE LOWER(Account_ID) LIKE LOWER('%562C88AD%');
+```
+- Performs a **case-insensitive match** by converting both the `Account_ID` and the substring to lowercase.
+
+---
+
+### **5. Match Using a Regular Expression**
+```sql
+SELECT Account_ID, Quota_Used, MRR
+FROM `long-loop-442611-j5.saas.saas_base`
+WHERE REGEXP_CONTAINS(Account_ID, r'562c88ad');
+```
+- Matches `Account_ID` values using a **regular expression**. This approach is more flexible for complex patterns.
+
+---
+
+### **6. Match Multiple Similar IDs**
+```sql
+SELECT Account_ID, Quota_Used, MRR
+FROM `long-loop-442611-j5.saas.saas_base`
+WHERE Account_ID IN ('562c88ad-81fb-452b-b93b-dc6af4', '562c88ad-xyzb-123b-b93b-dc6af4');
+```
+- Matches rows where the `Account_ID` is **one of several predefined IDs**.
+
+---
+
+### **7. Exclude Specific Similar IDs**
+```sql
+SELECT Account_ID, Quota_Used, MRR
+FROM `long-loop-442611-j5.saas.saas_base`
+WHERE Account_ID LIKE '%562c88ad%' AND Account_ID NOT IN ('562c88ad-81fb-452b-b93b-dc6af4');
+```
+- Matches rows **similar to** `562c88ad` but **excludes specific IDs**.
+
+---
+
+### **8. Find Account IDs With a Specific Length**
+```sql
+SELECT Account_ID, Quota_Used, MRR
+FROM `long-loop-442611-j5.saas.saas_base`
+WHERE LENGTH(Account_ID) = 36 AND Account_ID LIKE '%562c88ad%';
+```
+- Matches rows with a specific `Account_ID` length (**e.g., 36 characters**) and similarity.
+
+---
+
+### **9. Use Wildcard Matching for Variations**
+```sql
+SELECT Account_ID, Quota_Used, MRR
+FROM `long-loop-442611-j5.saas.saas_base`
+WHERE Account_ID LIKE '562c%-%-%';
+```
+- Matches `Account_ID` patterns like `562cXXXXX-XXXXX-XXXXX`.
+
+---
+
+Let me know if you’d like any further customization!
    ```
 
 5. **Group by `Country` and calculate the total MRR for each country.**
