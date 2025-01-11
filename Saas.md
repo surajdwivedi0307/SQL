@@ -146,14 +146,21 @@ FROM `long-loop-442611-j5.saas.saas_base`;
 ### **Advanced Questions**
 7. **Use a CTE (Common Table Expression) to calculate the average `MRR` per `Country` and find countries with `MRR` above 5000.**
    ```sql
-   WITH country_mrr AS (
-       SELECT Country, AVG(MRR) AS avg_mrr
-       FROM `long-loop-442611-j5.saas.saas_base`
-       GROUP BY Country
-   )
-   SELECT Country, avg_mrr
-   FROM country_mrr
-   WHERE avg_mrr > 5000;
+WITH country_mrr AS (
+    SELECT Country, AVG(MRR) AS avg_mrr
+    FROM `long-loop-442611-j5.saas.saas_base`
+    GROUP BY Country
+)
+SELECT 
+Country,
+avg_mrr,
+    CASE 
+        WHEN avg_mrr < 500 THEN 'Small'
+        WHEN avg_mrr BETWEEN 500 AND 2000 THEN 'Medium'
+        ELSE 'Large'
+    END AS country_mrr_bucket
+FROM country_mrr
+WHERE avg_mrr > 50;
    ```
 
 8. **Join the table with itself to compare `MRR` for accounts with the same `Industry` but different `Geography`.**
