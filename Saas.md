@@ -119,12 +119,12 @@ WHERE Account_ID LIKE '562c%-%-%'
 ORDER BY MRR DESC;
 ```
 
-5. **Group by `Country` and calculate the total MRR for each country.**
+### **10.Group by `Country` and calculate the total MRR for each country.**
    ```sql
-   SELECT Country, SUM(MRR) AS total_mrr
-   FROM `long-loop-442611-j5.saas.saas_base`
-   GROUP BY Country
-   ORDER BY total_mrr DESC;
+SELECT Country, round(SUM(MRR),0) AS total_mrr
+FROM `long-loop-442611-j5.saas.saas_base`
+GROUP BY Country
+ORDER BY total_mrr DESC;
    ```
 
 6. **Use a `CASE` statement to classify accounts based on `MRR`.**
