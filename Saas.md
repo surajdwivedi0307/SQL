@@ -240,19 +240,20 @@ Here are some **very basic** to **advanced** examples of **window functions**:
      RANK() OVER (PARTITION BY Country ORDER BY avg_arr DESC) AS rank_within_country
     FROM avg_arr_per_country;
 
- ```
-2B. **Window Function with Partition: Using `RANK()` to rank accounts within each `Country` based on `ARR`.**```
+   ```
 
-  ```sql
+2.B ** Window Function with Partition: Using RANK() to rank accounts within each `Country` based on `ARR`.**
+
+```sql
    WITH avg_arr_per_country AS (
-    SELECT 
-     Account_ID, 
-     Country, 
-     AVG(ARR) AS avg_arr
-    FROM `long-loop-442611-j5.saas.saas_base`
-    GROUP BY Account_ID, Country
-   )
-  SELECT 
+     SELECT 
+       Account_ID, 
+       Country, 
+       AVG(ARR) AS avg_arr
+     FROM `long-loop-442611-j5.saas.saas_base`
+     GROUP BY Account_ID, Country
+    )
+ SELECT 
     Account_ID, 
     Country, 
     avg_arr, 
