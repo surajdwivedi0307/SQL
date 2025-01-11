@@ -215,11 +215,11 @@ Here are some **very basic** to **advanced** examples of **window functions**:
 
 1. **Simple Window Function: Using `ROW_NUMBER()` to assign a unique row number to each row in the table.**
    ```sql
-   SELECT 
-       Account_ID, 
-       MRR,
-       ROW_NUMBER() OVER (ORDER BY MRR DESC) AS row_number
-   FROM `long-loop-442611-j5.saas.saas_base`;
+    SELECT 
+      Account_ID, 
+      MRR,
+      ROW_NUMBER() OVER (ORDER BY MRR DESC) AS mrr_ranked
+    FROM `long-loop-442611-j5.saas.saas_base`;
    ```
    - This query assigns a sequential number to each row based on the `MRR` in descending order.
 
