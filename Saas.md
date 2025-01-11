@@ -301,6 +301,24 @@ Here are some **very basic** to **advanced** examples of **window functions**:
    ```
 
 
+   ```sql
+    SELECT 
+       Account_ID, 
+       Industry,
+       Month, 
+       MRR, 
+       LEAD(MRR) OVER (PARTITION BY Account_ID ORDER BY Month) AS next_mrr,
+       LAG(MRR) OVER (PARTITION BY Account_ID ORDER BY Month) AS previous_mrr,
+       FIRST_VALUE(Month) OVER (PARTITION BY Account_ID ORDER BY Month ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS 
+         first_month,
+       LAST_VALUE(Month) OVER (PARTITION BY Account_ID ORDER BY Month ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS 
+         last_month
+    FROM `long-loop-442611-j5.saas.saas_base`
+    WHERE Account_ID='01732900-b003-4cfb-9be4-40fde466ee5c'
+    ORDER BY Month;
+
+   ```
+
 ---
 
 ### **Advanced Window Function Examples**
