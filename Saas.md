@@ -11,7 +11,7 @@ Here are 15 SQL questions progressively moving from basic to advanced concepts, 
 
 2. **Count the total number of accounts.**
    ```sql
-   SELECT COUNT(*) AS total_accounts
+   SELECT COUNT(DISTINCT Account_ID) AS total_accounts
    FROM `long-loop-442611-j5.saas.saas_base`;
    ```
 
