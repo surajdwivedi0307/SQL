@@ -127,17 +127,18 @@ GROUP BY Country
 ORDER BY total_mrr DESC;
    ```
 
-6. **Use a `CASE` statement to classify accounts based on `MRR`.**
+### **11.Use a `CASE` statement to classify accounts based on `MRR`.**
    ```sql
-   SELECT 
-       Account_ID, 
-       MRR, 
-       CASE 
-           WHEN MRR < 500 THEN 'Small'
-           WHEN MRR BETWEEN 500 AND 2000 THEN 'Medium'
-           ELSE 'Large'
-       END AS account_size
-   FROM `long-loop-442611-j5.saas.saas_base`;
+SELECT 
+    Account_ID,Country,
+    MRR, 
+    CASE 
+        WHEN MRR < 500 THEN 'Small'
+        WHEN MRR BETWEEN 500 AND 2000 THEN 'Medium'
+        WHEN MRR BETWEEN 2000 AND 5000 THEN 'Large'
+        ELSE 'Very Large'
+    END AS account_size
+FROM `long-loop-442611-j5.saas.saas_base`;
    ```
 
 ---
