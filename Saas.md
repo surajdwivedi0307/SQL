@@ -368,19 +368,19 @@ Here are some **very basic** to **advanced** examples of **window functions**:
 
 8. **Calculating the percentage difference between `MRR` and the average `MRR` for each `Country` using window functions.**
    ```sql
-   SELECT 
-    Account_ID,
-    Month,
-    Country,
-    Industry,
-    MRR,
-    AVG(MRR) OVER (PARTITION BY Country, Industry) AS country_ind_avg_mrr,
-    CASE 
-        WHEN MRR = 0 THEN NULL
-        ELSE ((MRR - AVG(MRR) OVER (PARTITION BY Country, Industry)) / MRR) * 100
-    END AS pct_diff_from_avg
-  FROM `long-loop-442611-j5.saas.saas_base`
-  ORDER BY Account_ID;
+      SELECT 
+       Account_ID,
+       Month,
+       Country,
+       Industry,
+       MRR,
+       AVG(MRR) OVER (PARTITION BY Country, Industry) AS country_ind_avg_mrr,
+       CASE 
+          WHEN MRR = 0 THEN NULL
+          ELSE ((MRR - AVG(MRR) OVER (PARTITION BY Country, Industry)) / MRR) * 100
+      END AS pct_diff_from_avg
+     FROM `long-loop-442611-j5.saas.saas_base`
+     ORDER BY Account_ID;
 
 
    ```
