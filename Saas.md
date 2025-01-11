@@ -203,6 +203,121 @@ FROM `long-loop-442611-j5.saas.saas_base`;
 
    ```
 
+
+
+
+
+Here are some **very basic** to **advanced** examples of **window functions**:
+
+---
+
+### **Basic Window Function Examples**
+
+1. **Simple Window Function: Using `ROW_NUMBER()` to assign a unique row number to each row in the table.**
+   ```sql
+   SELECT 
+       Account_ID, 
+       MRR,
+       ROW_NUMBER() OVER (ORDER BY MRR DESC) AS row_number
+   FROM `long-loop-442611-j5.saas.saas_base`;
+   ```
+   - This query assigns a sequential number to each row based on the `MRR` in descending order.
+
+2. **Window Function with Partition: Using `RANK()` to rank accounts within each `Country` based on `ARR`.**
+   ```sql
+   SELECT 
+       Account_ID, 
+       Country, 
+       ARR, 
+       RANK() OVER (PARTITION BY Country ORDER BY ARR DESC) AS rank_within_country
+   FROM `long-loop-442611-j5.saas.saas_base`;
+   ```
+   - This query ranks accounts within each `Country`, with the highest `ARR` ranked first.
+
+---
+
+### **Intermediate Window Function Examples**
+
+3. **Calculating the running total: Using `SUM()` with a window function to get a cumulative sum of `MRR` per `Geography`.**
+   ```sql
+   SELECT 
+       Geography, 
+       Account_ID, 
+       MRR, 
+       SUM(MRR) OVER (PARTITION BY Geography ORDER BY Account_ID) AS cumulative_mrr
+   FROM `long-loop-442611-j5.saas.saas_base`;
+   ```
+   - This query calculates the cumulative sum of `MRR` per `Geography` as we move down the list of `Account_ID`.
+
+4. **Window function with `LEAD()` and `LAG()`: Compare each account’s `MRR` with the next and previous account in the `Industry` using `LEAD()` and `LAG()`.**
+   ```sql
+   SELECT 
+       Account_ID, 
+       Industry, 
+       MRR, 
+       LEAD(MRR) OVER (PARTITION BY Industry ORDER BY Account_ID) AS next_mrr,
+       LAG(MRR) OVER (PARTITION BY Industry ORDER BY Account_ID) AS previous_mrr
+   FROM `long-loop-442611-j5.saas.saas_base`;
+   ```
+   - This query retrieves the `MRR` of the next and previous account within the same `Industry`.
+
+---
+
+### **Advanced Window Function Examples**
+
+5. **Window function with `NTILE()`: Split accounts into quartiles based on `ARR`.**
+   ```sql
+   SELECT 
+       Account_ID, 
+       ARR, 
+       NTILE(4) OVER (ORDER BY ARR DESC) AS quartile
+   FROM `long-loop-442611-j5.saas.saas_base`;
+   ```
+   - This query divides all accounts into 4 quartiles based on their `ARR`, with the highest `ARR` in the first quartile.
+
+6. **Calculating a moving average: Using `AVG()` with a window function to calculate a 3-month moving average of `MRR`.**
+   ```sql
+   SELECT 
+       Account_ID, 
+       Month, 
+       MRR,
+       AVG(MRR) OVER (PARTITION BY Account_ID ORDER BY Month ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS moving_avg
+   FROM `long-loop-442611-j5.saas.saas_base`;
+   ```
+   - This query calculates the moving average of `MRR` over the past 3 months for each `Account_ID`.
+
+7. **Finding the first and last `MRR` for each `Country` using `FIRST_VALUE()` and `LAST_VALUE()`.**
+   ```sql
+   SELECT 
+       Account_ID, 
+       Country, 
+       MRR, 
+       FIRST_VALUE(MRR) OVER (PARTITION BY Country ORDER BY Month) AS first_mrr,
+       LAST_VALUE(MRR) OVER (PARTITION BY Country ORDER BY Month ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) AS last_mrr
+   FROM `long-loop-442611-j5.saas.saas_base`;
+   ```
+   - This query retrieves the first and last `MRR` for each `Country`, based on the `Month`.
+
+8. **Calculating the percentage difference between `MRR` and the average `MRR` for each `Country` using window functions.**
+   ```sql
+   SELECT 
+       Account_ID, 
+       Country, 
+       MRR,
+       (MRR - AVG(MRR) OVER (PARTITION BY Country)) / AVG(MRR) OVER (PARTITION BY Country) * 100 AS pct_diff_from_avg
+   FROM `long-loop-442611-j5.saas.saas_base`;
+   ```
+   - This query calculates the percentage difference of each account's `MRR` from the average `MRR` for its `Country`.
+
+---
+
+These examples gradually move from simple row-based window functions to more complex aggregate window functions with partitions, moving averages, and first/last value calculations. Let me know if you'd like further details or modifications!
+
+
+
+
+
+
 10. **Use a window function to calculate the cumulative MRR for each `Geography`.**
    ```sql
    SELECT 
