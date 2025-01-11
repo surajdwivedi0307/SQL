@@ -352,15 +352,17 @@ Here are some **very basic** to **advanced** examples of **window functions**:
    ```
    - This query calculates the moving average of `MRR` over the past 3 months for each `Account_ID`.
 
-7. **Finding the first and last `MRR` for each `Country` using `FIRST_VALUE()` and `LAST_VALUE()`.**
+7. **Finding the first and last `MRR` for each `Account ID` using `FIRST_VALUE()` and `LAST_VALUE()`.**
    ```sql
-   SELECT 
-       Account_ID, 
-       Country, 
-       MRR, 
-       FIRST_VALUE(MRR) OVER (PARTITION BY Country ORDER BY Month) AS first_mrr,
-       LAST_VALUE(MRR) OVER (PARTITION BY Country ORDER BY Month ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) AS last_mrr
-   FROM `long-loop-442611-j5.saas.saas_base`;
+     SELECT 
+         Account_ID, 
+         Country, 
+         MRR, 
+         FIRST_VALUE(MRR) OVER (PARTITION BY Account_ID ORDER BY Month) AS first_mrr,
+         LAST_VALUE(MRR) OVER (PARTITION BY Account_ID ORDER BY Month ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) AS last_mrr
+     FROM `long-loop-442611-j5.saas.saas_base`
+     WHERE Account_ID='2754d14a-662c-4ec1-a4d2-c1cb449f133d'
+    ORDER BY Month;
    ```
    - This query retrieves the first and last `MRR` for each `Country`, based on the `Month`.
 
