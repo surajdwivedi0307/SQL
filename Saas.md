@@ -286,17 +286,20 @@ Here are some **very basic** to **advanced** examples of **window functions**:
    ```
    - This query calculates the cumulative sum of `MRR` per `Geography` as we move down the list of `Account_ID`.
 
-4. **Window function with `LEAD()` and `LAG()`: Compare each account’s `MRR` with the next and previous account in the `Industry` using `LEAD()` and `LAG()`.**
+4. **Window function with `LEAD()` and `LAG()`: Compare each account’s `MRR` with the next and previous account in the `Month` using `LEAD()` and `LAG()`.**
    ```sql
-   SELECT 
-       Account_ID, 
-       Industry, 
-       MRR, 
-       LEAD(MRR) OVER (PARTITION BY Industry ORDER BY Account_ID) AS next_mrr,
-       LAG(MRR) OVER (PARTITION BY Industry ORDER BY Account_ID) AS previous_mrr
-   FROM `long-loop-442611-j5.saas.saas_base`;
+    SELECT 
+        Account_ID, 
+        Industry,
+        Month, 
+        MRR, 
+        LEAD(MRR) OVER (PARTITION BY Account_ID ORDER BY Month) AS next_mrr,
+        LAG(MRR) OVER (PARTITION BY Account_ID ORDER BY Month) AS previous_mrr
+     FROM `long-loop-442611-j5.saas.saas_base`
+     Where Account_ID='01732900-b003-4cfb-9be4-40fde466ee5c'
+     ORDER BY Month;
    ```
-   - This query retrieves the `MRR` of the next and previous account within the same `Industry`.
+
 
 ---
 
