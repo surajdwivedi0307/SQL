@@ -118,12 +118,6 @@ FROM `long-loop-442611-j5.saas.saas_base`
 WHERE Account_ID LIKE '562c%-%-%'
 ORDER BY MRR DESC;
 ```
-- Matches `Account_ID` patterns like `562cXXXXX-XXXXX-XXXXX`.
-
----
-
-Let me know if you’d like any further customization!
-   ```
 
 5. **Group by `Country` and calculate the total MRR for each country.**
    ```sql
