@@ -170,13 +170,37 @@ FROM `long-loop-442611-j5.saas.saas_base`;
 
 9. **Use a subquery to find accounts with an `MRR` above the average `MRR` for their `Contract_Type`.**
    ```sql
-   SELECT Account_ID, Contract_Type, MRR
-   FROM `long-loop-442611-j5.saas.saas_base`
-   WHERE MRR > (
-       SELECT AVG(MRR)
-       FROM `long-loop-442611-j5.saas.saas_base` sub
-       WHERE sub.Contract_Type = `long-loop-442611-j5.saas.saas_base`.Contract_Type
-   );
+                SELECT 
+    main.Account_ID, 
+    main.Country, 
+    main.max_mrr, 
+    country_avg.avg_mrr
+   FROM 
+     (
+        SELECT 
+            Account_ID, 
+            Country, 
+            MAX(MRR) AS max_mrr
+        FROM 
+            `long-loop-442611-j5.saas.saas_base`
+        GROUP BY 
+            Account_ID, Country
+      ) main
+  JOIN 
+    (
+        SELECT 
+            Country, 
+            AVG(MRR) AS avg_mrr
+        FROM 
+            `long-loop-442611-j5.saas.saas_base`
+        GROUP BY 
+            Country
+    ) country_avg
+ON 
+    main.Country = country_avg.Country
+   WHERE 
+   main.max_mrr > country_avg.avg_mrr;
+
    ```
 
 10. **Use a window function to calculate the cumulative MRR for each `Geography`.**
