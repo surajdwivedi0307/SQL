@@ -262,14 +262,13 @@ Here are some **very basic** to **advanced** examples of **window functions**:
           SELECT 
              Account_ID, 
              Country, 
-              avg_arr, 
+             avg_arr, 
              RANK() OVER (PARTITION BY Country ORDER BY avg_arr DESC) AS rank_within_country
           FROM avg_arr_per_country
-        ) AS ranked_data
+        )
    WHERE rank_within_country < 3
    ORDER BY Country;
 
-   WHERE rank_within_country < 3;
 
 ```
 ---
