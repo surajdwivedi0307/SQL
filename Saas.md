@@ -407,12 +407,24 @@ These examples gradually move from simple row-based window functions to more com
 
 11. **Rank accounts within each `Country` by `ARR` using a window function.**
    ```sql
-   SELECT 
-       Account_ID, 
-       Country, 
-       ARR, 
-       RANK() OVER (PARTITION BY Country ORDER BY ARR DESC) AS rank_within_country
-   FROM `long-loop-442611-j5.saas.saas_base`;
+             WITH arr_account AS (
+         SELECT 
+             Account_ID, 
+              Country, 
+            SUM(ARR) AS ARR_sum
+     FROM `long-loop-442611-j5.saas.saas_base`
+    GROUP BY Account_ID, Country
+    --HAVING Account_ID = '1a5d5493-8017-4c24-8561-32443db61afb'
+)
+
+SELECT 
+    Account_ID, 
+    Country, 
+    ARR_sum, 
+    RANK() OVER (PARTITION BY Country ORDER BY ARR_sum DESC) AS rank_within_country
+FROM arr_account
+ORDER BY Country;
+
    ```
 
 12. **Find the `Lead` and `Lag` MRR values for each account within the same `Industry`.**
