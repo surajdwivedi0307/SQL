@@ -511,3 +511,81 @@ ON
 select* from final_table
 where mrr_rank=1 AND Country='Belgium'
    ```
+
+15. **Above Final query using Subquery`.**
+
+
+SELECT 
+    cma.Account_ID,
+    cma.MRR,
+    cma.Country,
+    cma.parsed_month,
+    cyr.year,
+    cyr.country_rev,
+    cyr.revenue_bucket,
+    cma.next_month_revenue,
+    cma.first_month,
+    cma.last_month,
+    cma.first_mrr,
+    cma.last_mrr,
+    cma.highest_mrr_month,
+    DATE_DIFF(cma.last_month, cma.first_month, MONTH) AS account_tenure_months,
+    cma.mrr_rank
+FROM 
+    (
+        SELECT 
+            Account_ID,
+            Country,
+            MRR,
+            PARSE_DATE('%Y-%m', Month) AS parsed_month,
+            EXTRACT(YEAR FROM PARSE_DATE('%Y-%m', Month)) AS year,
+            LEAD(MRR) OVER (PARTITION BY Account_ID ORDER BY PARSE_DATE('%Y-%m', Month)) AS next_month_revenue,
+            FIRST_VALUE(MRR) OVER (PARTITION BY Account_ID ORDER BY PARSE_DATE('%Y-%m', Month)) AS first_mrr,
+            LAST_VALUE(MRR) OVER (PARTITION BY Account_ID ORDER BY PARSE_DATE('%Y-%m', Month) ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_mrr,
+            FIRST_VALUE(PARSE_DATE('%Y-%m', Month)) OVER (PARTITION BY Account_ID ORDER BY PARSE_DATE('%Y-%m', Month)) AS first_month,
+            LAST_VALUE(PARSE_DATE('%Y-%m', Month)) OVER (PARTITION BY Account_ID ORDER BY PARSE_DATE('%Y-%m', Month) ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_month,
+            RANK() OVER (PARTITION BY Account_ID ORDER BY MRR DESC) AS mrr_rank,
+            CASE 
+                WHEN RANK() OVER (PARTITION BY Account_ID ORDER BY MRR DESC) = 1 THEN PARSE_DATE('%Y-%m', Month)
+                ELSE NULL 
+            END AS highest_mrr_month
+        FROM 
+            `long-loop-442611-j5.saas.saas_base`
+        GROUP BY 
+            Account_ID, Country, Month, MRR
+    ) AS cma
+JOIN 
+    (
+        SELECT 
+            Country,
+            year,
+            SUM(MRR) AS country_rev,
+            MAX(SUM(MRR)) OVER () AS max_rev,
+            MIN(SUM(MRR)) OVER () AS min_rev,
+            CASE
+                WHEN SUM(MRR) >= 0.75 * MAX(SUM(MRR)) OVER () THEN 'High Revenue'
+                WHEN SUM(MRR) >= 0.50 * MAX(SUM(MRR)) OVER () THEN 'Medium Revenue'
+                ELSE 'Low Revenue'
+            END AS revenue_bucket
+        FROM 
+            (
+                SELECT 
+                    Account_ID,
+                    Country,
+                    MRR,
+                    PARSE_DATE('%Y-%m', Month) AS parsed_month,
+                    EXTRACT(YEAR FROM PARSE_DATE('%Y-%m', Month)) AS year
+                FROM 
+                    `long-loop-442611-j5.saas.saas_base`
+                GROUP BY 
+                    Account_ID, Country, Month, MRR
+            ) AS country_month_arr
+        GROUP BY 
+            Country, year
+    ) AS cyr
+ON 
+    cma.Country = cyr.Country
+    AND EXTRACT(YEAR FROM cma.parsed_month) = cyr.year
+WHERE 
+    cma.mrr_rank = 1 AND cma.Country = 'Belgium'
+
