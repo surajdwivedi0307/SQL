@@ -449,16 +449,21 @@ WITH country_month_arr AS (
         MRR,
         PARSE_DATE('%Y-%m', Month) AS parsed_month,
         EXTRACT(YEAR FROM PARSE_DATE('%Y-%m', Month)) AS year,
-        LEAD(MRR) OVER (PARTITION BY Account_ID, Country ORDER BY PARSE_DATE('%Y-%m', Month)) AS next_month_revenue,
-        FIRST_VALUE(MRR) OVER (PARTITION BY Account_ID, Country ORDER BY PARSE_DATE('%Y-%m', Month)) AS first_mrr,
-        LAST_VALUE(MRR) OVER (PARTITION BY Account_ID, Country ORDER BY PARSE_DATE('%Y-%m', Month) ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_mrr,
-        FIRST_VALUE(PARSE_DATE('%Y-%m', Month)) OVER (PARTITION BY Account_ID, Country ORDER BY PARSE_DATE('%Y-%m', Month)) AS first_month,
-        LAST_VALUE(PARSE_DATE('%Y-%m', Month)) OVER (PARTITION BY Account_ID, Country ORDER BY PARSE_DATE('%Y-%m', Month) ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_month,
-        RANK() OVER (PARTITION BY Account_ID ORDER BY MRR DESC) AS mrr_rank -- Rank based on MRR per Account_ID for each month
+        LEAD(MRR) OVER (PARTITION BY Account_ID ORDER BY PARSE_DATE('%Y-%m', Month)) AS next_month_revenue,
+        FIRST_VALUE(MRR) OVER (PARTITION BY Account_ID ORDER BY PARSE_DATE('%Y-%m', Month)) AS first_mrr,
+        LAST_VALUE(MRR) OVER (PARTITION BY Account_ID ORDER BY PARSE_DATE('%Y-%m', Month) ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_mrr,
+        FIRST_VALUE(PARSE_DATE('%Y-%m', Month)) OVER (PARTITION BY Account_ID ORDER BY PARSE_DATE('%Y-%m', Month)) AS first_month,
+        LAST_VALUE(PARSE_DATE('%Y-%m', Month)) OVER (PARTITION BY Account_ID ORDER BY PARSE_DATE('%Y-%m', Month) ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_month,
+        RANK() OVER (PARTITION BY Account_ID ORDER BY MRR DESC) AS mrr_rank,
+        CASE 
+           WHEN RANK() OVER (PARTITION BY Account_ID ORDER BY MRR DESC) = 1 THEN PARSE_DATE('%Y-%m', Month)
+           ELSE NULL 
+        END AS highest_mrr_month 
     FROM 
         `long-loop-442611-j5.saas.saas_base` 
     GROUP BY 
         Account_ID, Country, Month, MRR
+    --Having Account_ID='03371a94-3e25-407b-a56e-fdc50abb6c11'
 ),
 country_year_rev AS (
     SELECT 
@@ -476,8 +481,9 @@ country_year_rev AS (
         country_month_arr
     GROUP BY
         Country, year
-)
+),
 
+final_table AS (
 SELECT 
     cma.Account_ID,
     cma.MRR,
@@ -491,6 +497,7 @@ SELECT
     cma.last_month,
     cma.first_mrr,
     cma.last_mrr,
+    cma.highest_mrr_month,
     DATE_DIFF(cma.last_month, cma.first_month, MONTH) AS account_tenure_months,  -- Account tenure in months
     cma.mrr_rank  -- Rank based on MRR per Account_ID for each month
 FROM 
@@ -500,5 +507,7 @@ JOIN
 ON 
     cma.Country = cyr.Country
     AND EXTRACT(YEAR FROM cma.parsed_month) = cyr.year
-ORDER BY cma.Account_Id;
+)
+select* from final_table
+where mrr_rank=1 AND Country='Belgium'
    ```
