@@ -1,4 +1,4 @@
-Here are 15 SQL questions progressively moving from basic to advanced, along with their BigQuery queries. Each question will help you explore the table `long-loop-442611-j5.saas.saas_base`
+Here are 15 SQL questions progressively moving from basic to advanced, along with their BigQuery queries. Each helping explore the table `long-loop-442611-j5.saas.saas_base`
 
 ---
 
