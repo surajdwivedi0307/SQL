@@ -447,34 +447,3 @@ ORDER BY Country;
    FROM `long-loop-442611-j5.saas.saas_base`;
    ```
 
----
-
-### **Expert-Level Questions**
-14. **Calculate the retention rate for each `Plan_Offering` using a self-join.**
-   ```sql
-   SELECT 
-       current.Plan_Offering, 
-       COUNT(DISTINCT current.Account_ID) AS total_accounts,
-       COUNT(DISTINCT future.Account_ID) AS retained_accounts,
-       COUNT(DISTINCT future.Account_ID) / COUNT(DISTINCT current.Account_ID) AS retention_rate
-   FROM `long-loop-442611-j5.saas.saas_base` current
-   LEFT JOIN `long-loop-442611-j5.saas.saas_base` future
-   ON current.Account_ID = future.Account_ID 
-      AND current.Month < future.Month
-   GROUP BY current.Plan_Offering;
-   ```
-
-15. **Calculate the churn rate for `Contract_Type` using a window function.**
-   ```sql
-   SELECT 
-       Contract_Type, 
-       COUNT(Account_ID) AS total_accounts, 
-       SUM(CASE WHEN Contract_Status = 'Churned' THEN 1 ELSE 0 END) AS churned_accounts,
-       SUM(CASE WHEN Contract_Status = 'Churned' THEN 1 ELSE 0 END) / COUNT(Account_ID) AS churn_rate
-   FROM `long-loop-442611-j5.saas.saas_base`
-   GROUP BY Contract_Type;
-   ```
-
----
-
-These queries progressively build SQL skills, starting from basics like filtering and aggregations to advanced concepts like CTEs, window functions, and joins. Let me know if you want any query elaborated or modified further!
