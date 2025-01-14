@@ -590,20 +590,17 @@ WHERE
     cma.mrr_rank = 1 AND cma.Country = 'Belgium'
 
    ```
+### **. Other types of joins (LEFT JOIN, RIGHT JOIN, FULL OUTER JOIN)**
+### **. Aggregation without grouping (e.g., averages)**
+### **. UNION / UNION ALL**
+### **. Window functions without partitioning (e.g., ROW_NUMBER() without PARTITION BY)**
+### **. Data modification (INSERT, UPDATE, DELETE)g**
+### **. Transactions, locking, and commit/rollback**
+### **. Foreign keys, constraints, and indexes**
+### **. UNION / UNION ALL**
+### **. Full-text search**
+### **. Triggers**
+### **. TStored procedures or functionsk**
+### **. Recursive queries**
+### **. More complex CASE logic**
 
-
-Summary of Missing Concepts:
-Other types of joins (LEFT JOIN, RIGHT JOIN, FULL OUTER JOIN)
-Aggregation without grouping (e.g., averages)
-UNION / UNION ALL
-DISTINCT
-HAVING clause for filtering after aggregation
-Window functions without partitioning (e.g., ROW_NUMBER() without PARTITION BY)
-Data modification (INSERT, UPDATE, DELETE)
-Transactions, locking, and commit/rollback
-Foreign keys, constraints, and indexes
-Full-text search
-Triggers
-Stored procedures or functions
-Recursive queries
-More complex CASE logic
