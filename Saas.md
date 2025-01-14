@@ -513,7 +513,7 @@ where mrr_rank=1 AND Country='Belgium'
    ```
 
 15. **Above Final query using Subquery`.**
-
+   ```sql
 
 SELECT 
     cma.Account_ID,
@@ -589,3 +589,21 @@ ON
 WHERE 
     cma.mrr_rank = 1 AND cma.Country = 'Belgium'
 
+   ```
+
+
+Summary of Missing Concepts:
+Other types of joins (LEFT JOIN, RIGHT JOIN, FULL OUTER JOIN)
+Aggregation without grouping (e.g., averages)
+UNION / UNION ALL
+DISTINCT
+HAVING clause for filtering after aggregation
+Window functions without partitioning (e.g., ROW_NUMBER() without PARTITION BY)
+Data modification (INSERT, UPDATE, DELETE)
+Transactions, locking, and commit/rollback
+Foreign keys, constraints, and indexes
+Full-text search
+Triggers
+Stored procedures or functions
+Recursive queries
+More complex CASE logic
