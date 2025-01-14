@@ -23,13 +23,6 @@ Here are 15 SQL questions progressively moving from basic to advanced, along wit
 
 ---
 
-### **Intermediate Questions**
-4. **Filter all accounts with `Quota_Used` greater than 80.**
-   ```sql
-  Here are several variants of your query, depending on the pattern or similarity you are looking for:
-
----
-
 ### **1. Match Account IDs Starting with the Substring**
 ```sql
 SELECT COUNT(Account_ID) as AccountNos, Product
