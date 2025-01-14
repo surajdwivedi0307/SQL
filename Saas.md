@@ -440,3 +440,65 @@ ORDER BY Country;
    FROM `long-loop-442611-j5.saas.saas_base`;
    ```
 
+14. **One Final query`.**
+   ```sql
+WITH country_month_arr AS (
+    SELECT 
+        Account_ID,
+        Country,
+        MRR,
+        PARSE_DATE('%Y-%m', Month) AS parsed_month,
+        EXTRACT(YEAR FROM PARSE_DATE('%Y-%m', Month)) AS year,
+        LEAD(MRR) OVER (PARTITION BY Account_ID, Country ORDER BY PARSE_DATE('%Y-%m', Month)) AS next_month_revenue,
+        FIRST_VALUE(MRR) OVER (PARTITION BY Account_ID, Country ORDER BY PARSE_DATE('%Y-%m', Month)) AS first_mrr,
+        LAST_VALUE(MRR) OVER (PARTITION BY Account_ID, Country ORDER BY PARSE_DATE('%Y-%m', Month) ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_mrr,
+        FIRST_VALUE(PARSE_DATE('%Y-%m', Month)) OVER (PARTITION BY Account_ID, Country ORDER BY PARSE_DATE('%Y-%m', Month)) AS first_month,
+        LAST_VALUE(PARSE_DATE('%Y-%m', Month)) OVER (PARTITION BY Account_ID, Country ORDER BY PARSE_DATE('%Y-%m', Month) ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_month,
+        RANK() OVER (PARTITION BY Account_ID ORDER BY MRR DESC) AS mrr_rank -- Rank based on MRR per Account_ID for each month
+    FROM 
+        `long-loop-442611-j5.saas.saas_base` 
+    GROUP BY 
+        Account_ID, Country, Month, MRR
+),
+country_year_rev AS (
+    SELECT 
+        Country,
+        year,
+        SUM(MRR) AS country_rev,  -- Yearly revenue for each country
+        MAX(SUM(MRR)) OVER () AS max_rev,
+        MIN(SUM(MRR)) OVER () AS min_rev,
+        CASE
+            WHEN SUM(MRR) >= 0.75 * MAX(SUM(MRR)) OVER () THEN 'High Revenue'
+            WHEN SUM(MRR) >= 0.50 * MAX(SUM(MRR)) OVER () THEN 'Medium Revenue'
+            ELSE 'Low Revenue'
+        END AS revenue_bucket
+    FROM 
+        country_month_arr
+    GROUP BY
+        Country, year
+)
+
+SELECT 
+    cma.Account_ID,
+    cma.MRR,
+    cma.Country,
+    cma.parsed_month,
+    cyr.year,
+    cyr.country_rev,
+    cyr.revenue_bucket,
+    cma.next_month_revenue,
+    cma.first_month,
+    cma.last_month,
+    cma.first_mrr,
+    cma.last_mrr,
+    DATE_DIFF(cma.last_month, cma.first_month, MONTH) AS account_tenure_months,  -- Account tenure in months
+    cma.mrr_rank  -- Rank based on MRR per Account_ID for each month
+FROM 
+    country_month_arr cma
+JOIN 
+    country_year_rev cyr
+ON 
+    cma.Country = cyr.Country
+    AND EXTRACT(YEAR FROM cma.parsed_month) = cyr.year
+ORDER BY cma.Account_Id;
+   ```
